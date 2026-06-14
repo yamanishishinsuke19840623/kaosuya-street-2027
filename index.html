@@ -151,17 +151,23 @@ section{padding:90px 24px;position:relative}
 #hl .s-label-text{color:var(--org)}
 .flip-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
 @media(max-width:700px){.flip-grid{grid-template-columns:1fr}}
-.fc{height:260px;perspective:1000px;cursor:pointer}
-.fc-inner{width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform .6s cubic-bezier(.4,0,.2,1)}
+.fc{height:320px;perspective:1000px;cursor:pointer}
+.fc-inner{width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform .7s cubic-bezier(.4,0,.2,1)}
 .fc.fl .fc-inner{transform:rotateY(180deg)}
-.fc-f,.fc-b{position:absolute;inset:0;border-radius:var(--rad);backface-visibility:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center}
-.fc-f{background:linear-gradient(135deg,var(--org),var(--org-d));color:#fff}
-.fc-f .icon{font-size:44px;margin-bottom:10px}
-.fc-f h3{font-size:18px;font-weight:700}
-.fc-f p{font-size:11px;opacity:.75;margin-top:8px}
-.fc-b{background:linear-gradient(135deg,var(--dark),var(--dark3));color:var(--white);transform:rotateY(180deg);border:2px solid var(--org)}
-.fc-b p{font-size:13px;line-height:1.8;color:rgba(255,255,255,.85)}
-.flip-hint{text-align:center;color:#999;font-size:12px;margin-top:16px}
+.fc-f,.fc-b{position:absolute;inset:0;border-radius:16px;backface-visibility:hidden;overflow:hidden}
+.fc-f{background:#111;color:#fff}
+.fc-f-bg{position:absolute;inset:0;background-size:cover;background-position:center;transition:transform .4s ease}
+.fc:hover .fc-f-bg{transform:scale(1.05)}
+.fc-f-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.85) 0%,rgba(0,0,0,.2) 60%,rgba(0,0,0,.1) 100%)}
+.fc-f-content{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;padding:24px;z-index:1}
+.fc-f-badge{display:inline-block;background:var(--org);color:#fff;font-size:9px;font-weight:700;letter-spacing:2px;padding:3px 10px;border-radius:20px;margin-bottom:10px;text-transform:uppercase;width:fit-content}
+.fc-f-content h3{font-size:20px;font-weight:900;color:#fff;margin-bottom:6px;line-height:1.2}
+.fc-f-content p{font-size:11px;color:rgba(255,255,255,.6);letter-spacing:.5px}
+.fc-flip-arrow{position:absolute;top:16px;right:16px;width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.15);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;font-size:14px;color:rgba(255,255,255,.8);z-index:1}
+.fc-b{background:linear-gradient(135deg,#1a1a2e,#2a2a4a);color:var(--white);transform:rotateY(180deg);display:flex;flex-direction:column;justify-content:center;padding:28px;border:2px solid rgba(255,107,53,.4)}
+.fc-b-title{font-size:13px;font-weight:700;color:var(--org);letter-spacing:1px;text-transform:uppercase;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid rgba(255,107,53,.2)}
+.fc-b p{font-size:13px;line-height:2;color:rgba(255,255,255,.82)}
+.flip-hint{text-align:center;color:rgba(255,255,255,.3);font-size:11px;margin-top:14px;letter-spacing:.5px}
 #ach{display:none;text-align:center;margin-top:24px;background:linear-gradient(135deg,var(--gold),var(--org-l));border-radius:var(--rad);padding:14px 24px;color:var(--dark);font-weight:700;animation:pop .5s ease}
 @keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
 
@@ -304,6 +310,14 @@ footer a:hover{text-decoration:underline}
 
 /* 音符バブル削除済み */
 
+/* ===== SVGアイコン ===== */
+.svg-icon{width:52px;height:52px;margin:0 auto 10px}
+.svg-icon svg,.svg-icon-dark svg{width:100%;height:100%}
+.svg-icon-dark{width:48px;height:48px;margin:0 auto 12px}
+/* ===== バーグラフ ===== */
+.st-bar{width:120px;height:4px;background:rgba(255,255,255,.1);border-radius:2px;margin:8px auto 0;overflow:hidden}
+.st-bar-fill{height:100%;background:linear-gradient(90deg,var(--org),var(--gold));border-radius:2px;width:0;transition:width 1.2s ease}
+.st-bar-fill.anim{width:var(--w)}
 /* ===== Instagram フィード ===== */
 #insta{background:linear-gradient(rgba(13,13,26,.87),rgba(13,13,26,.93)),url('photos/gallery5.jpg') center/cover no-repeat}
 .ig-card{display:block;border-radius:var(--rad);overflow:hidden;text-decoration:none;border:1px solid rgba(255,107,53,.2);transition:transform .25s,border-color .25s}
@@ -383,10 +397,10 @@ footer a:hover{text-decoration:underline}
     <div class="s-label fade-in"><div class="s-label-line"></div><span class="s-label-text">About the Festival</span></div>
     <h2 class="s-title fade-in">カオスやストリートとは？</h2>
     <div class="about-grid fade-in">
-      <div class="a-card"><div class="icon">🎪</div><div class="big" data-count="50">0</div><h3>店以上 出店</h3><p>キッチンカーを含む<br>地元人気店が大集合</p></div>
-      <div class="a-card"><div class="icon">🎵</div><div class="big" data-count="8">0</div><h3>回目の開催</h3><p>2020年スタート<br>毎年3月恒例フェス</p></div>
-      <div class="a-card"><div class="icon">👨‍👩‍👧‍👦</div><div class="big" data-count="4000">0</div><h3>名/日 来場目標</h3><p>2日間で<br>約8,000名が集まる</p></div>
-      <div class="a-card"><div class="icon">🏫</div><div class="big" data-count="3">0</div><h3>世代が交流</h3><p>小学生〜シニアまで<br>みんなで盛り上がる</p></div>
+      <div class="a-card"><div class="svg-icon"><svg viewBox="0 0 40 40" fill="none"><path d="M4 32V16l16-10 16 10v16H4z" stroke="var(--org)" stroke-width="2" fill="rgba(255,107,53,.15)"/><rect x="15" y="22" width="10" height="10" rx="1" stroke="var(--org)" stroke-width="1.5"/></svg></div><div class="big" data-count="50">0</div><h3>店以上 出店</h3><p>キッチンカーを含む<br>地元人気店が大集合</p></div>
+      <div class="a-card"><div class="svg-icon"><svg viewBox="0 0 40 40" fill="none"><circle cx="20" cy="20" r="14" stroke="var(--org)" stroke-width="2" fill="rgba(255,107,53,.1)"/><text x="20" y="26" text-anchor="middle" font-size="16" font-weight="900" fill="var(--org)" font-family="serif">8th</text></svg></div><div class="big" data-count="8">0</div><h3>回目の開催</h3><p>2020年スタート<br>毎年3月恒例フェス</p></div>
+      <div class="a-card"><div class="svg-icon"><svg viewBox="0 0 40 40" fill="none"><circle cx="14" cy="12" r="5" stroke="var(--org)" stroke-width="1.5"/><circle cx="26" cy="12" r="5" stroke="var(--org)" stroke-width="1.5"/><path d="M4 34c0-6 4-10 10-10h12c6 0 10 4 10 10" stroke="var(--org)" stroke-width="1.5" fill="rgba(255,107,53,.1)"/></svg></div><div class="big" data-count="4000">0</div><h3>名/日 来場目標</h3><p>2日間で<br>約8,000名が集まる</p></div>
+      <div class="a-card"><div class="svg-icon"><svg viewBox="0 0 40 40" fill="none"><rect x="6" y="18" width="8" height="14" rx="1" fill="rgba(255,107,53,.2)" stroke="var(--org)" stroke-width="1.5"/><rect x="16" y="12" width="8" height="20" rx="1" fill="rgba(255,107,53,.35)" stroke="var(--org)" stroke-width="1.5"/><rect x="26" y="6" width="8" height="26" rx="1" fill="rgba(255,107,53,.5)" stroke="var(--org)" stroke-width="1.5"/></svg></div><div class="big" data-count="3">0</div><h3>世代が交流</h3><p>小学生〜シニアまで<br>みんなで盛り上がる</p></div>
     </div>
     <p class="about-body fade-in">
       「KAOSUYA STREET MUSIC FESTIVAL」は、山口県下関市の安岡地区で毎年3月に開催される地域活性化イベントです。<br><br>
@@ -402,10 +416,10 @@ footer a:hover{text-decoration:underline}
 <section id="stats">
   <div class="ctr">
     <div class="stats-row">
-      <div class="st-item fade-in"><div class="st-num"><span id="s1" data-count="8000">0</span><span class="unit">名+</span></div><div class="st-lbl">2日間合計来場者（目標）</div></div>
-      <div class="st-item fade-in"><div class="st-num"><span id="s2" data-count="50">0</span><span class="unit">店</span></div><div class="st-lbl">マルシェ出店数</div></div>
-      <div class="st-item fade-in"><div class="st-num"><span id="s3" data-count="7">0</span><span class="unit">年</span></div><div class="st-lbl">継続開催の実績</div></div>
-      <div class="st-item fade-in"><div class="st-num"><span id="s4" data-count="10000">0</span><span class="unit">部</span></div><div class="st-lbl">チラシ配布予定数</div></div>
+      <div class="st-item fade-in"><div class="st-num"><span id="s1" data-count="8000">0</span><span class="unit">名+</span></div><div class="st-bar"><div class="st-bar-fill" style="--w:100%"></div></div><div class="st-lbl">2日間合計来場者（目標）</div></div>
+      <div class="st-item fade-in"><div class="st-num"><span id="s2" data-count="50">0</span><span class="unit">店</span></div><div class="st-bar"><div class="st-bar-fill" style="--w:63%"></div></div><div class="st-lbl">マルシェ出店数</div></div>
+      <div class="st-item fade-in"><div class="st-num"><span id="s3" data-count="7">0</span><span class="unit">年</span></div><div class="st-bar"><div class="st-bar-fill" style="--w:88%"></div></div><div class="st-lbl">継続開催の実績</div></div>
+      <div class="st-item fade-in"><div class="st-num"><span id="s4" data-count="10000">0</span><span class="unit">部</span></div><div class="st-bar"><div class="st-bar-fill" style="--w:80%"></div></div><div class="st-lbl">チラシ配布予定数</div></div>
     </div>
   </div>
 </section>
@@ -416,12 +430,12 @@ footer a:hover{text-decoration:underline}
     <div class="s-label fade-in"><div class="s-label-line"></div><span class="s-label-text">Past Events</span></div>
     <h2 class="s-title fade-in">過去の開催様子</h2>
     <div class="gal-grid fade-in">
-      <div class="gal-item" onclick="openLB(this)"><div class="gal-emoji">🎪</div><div class="gal-over">🔍</div></div>
-      <div class="gal-item" onclick="openLB(this)"><div class="gal-emoji">🎵</div><div class="gal-over">🔍</div></div>
-      <div class="gal-item" onclick="openLB(this)"><div class="gal-emoji">🛒</div><div class="gal-over">🔍</div></div>
-      <div class="gal-item" onclick="openLB(this)"><div class="gal-emoji">🎺</div><div class="gal-over">🔍</div></div>
-      <div class="gal-item" onclick="openLB(this)"><div class="gal-emoji">👨‍👩‍👧</div><div class="gal-over">🔍</div></div>
-      <div class="gal-item" onclick="openLB(this)"><div class="gal-emoji">🎤</div><div class="gal-over">🔍</div></div>
+      <div class="gal-item" onclick="openLB(this)"><div class="gal-over">＋</div></div>
+      <div class="gal-item" onclick="openLB(this)"><div class="gal-over">＋</div></div>
+      <div class="gal-item" onclick="openLB(this)"><div class="gal-over">＋</div></div>
+      <div class="gal-item" onclick="openLB(this)"><div class="gal-over">＋</div></div>
+      <div class="gal-item" onclick="openLB(this)"><div class="gal-over">＋</div></div>
+      <div class="gal-item" onclick="openLB(this)"><div class="gal-over">＋</div></div>
     </div>
     <p class="fade-in" style="text-align:center;margin-top:14px;color:rgba(255,255,255,.3);font-size:11px">※photos/ フォルダに gallery1.jpg〜gallery6.jpg を入れると写真が自動表示されます</p>
   </div>
@@ -464,20 +478,56 @@ footer a:hover{text-decoration:underline}
     <div class="flip-grid fade-in">
       <div class="fc" onclick="this.classList.toggle('fl');chkAll()">
         <div class="fc-inner">
-          <div class="fc-f"><div class="icon">🎵</div><h3>音楽フェスエリア</h3><p>タップして詳細を見る</p></div>
-          <div class="fc-b"><p>地元ミュージシャン・高校生バンド・小中学校の金管バンド・吹奏楽部まで。ジャンルも年齢も超えた2日間の野外ライブ。音楽で下関を盛り上げます！</p></div>
+          <div class="fc-f">
+            <div class="fc-f-bg" style="background-image:url('photos/gallery3.jpg')"></div>
+            <div class="fc-f-overlay"></div>
+            <div class="fc-flip-arrow">↺</div>
+            <div class="fc-f-content">
+              <span class="fc-f-badge">Music</span>
+              <h3>音楽フェスエリア</h3>
+              <p>タップして裏面を見る</p>
+            </div>
+          </div>
+          <div class="fc-b">
+            <div class="fc-b-title">Music Festival</div>
+            <p>地元ミュージシャン・高校生バンド・小中学校の金管バンド・吹奏楽部まで。ジャンルも年齢も超えた2日間の野外ライブ。音楽で下関を盛り上げます！</p>
+          </div>
         </div>
       </div>
       <div class="fc" onclick="this.classList.toggle('fl');chkAll()">
         <div class="fc-inner">
-          <div class="fc-f"><div class="icon">🛒</div><h3>マルシェ50店以上</h3><p>タップして詳細を見る</p></div>
-          <div class="fc-b"><p>キッチンカーを含む地域の人気飲食店・雑貨店など50店以上が集結。地域グルメを堪能しながら地元のお気に入りを発見できる地元密着マルシェ！</p></div>
+          <div class="fc-f">
+            <div class="fc-f-bg" style="background-image:url('photos/gallery5.jpg')"></div>
+            <div class="fc-f-overlay"></div>
+            <div class="fc-flip-arrow">↺</div>
+            <div class="fc-f-content">
+              <span class="fc-f-badge">Marché</span>
+              <h3>マルシェ50店以上</h3>
+              <p>タップして裏面を見る</p>
+            </div>
+          </div>
+          <div class="fc-b">
+            <div class="fc-b-title">Local Market</div>
+            <p>キッチンカーを含む地域の人気飲食店・雑貨店など50店以上が集結。地域グルメを堪能しながら地元のお気に入りを発見できる地元密着マルシェ！</p>
+          </div>
         </div>
       </div>
       <div class="fc" onclick="this.classList.toggle('fl');chkAll()">
         <div class="fc-inner">
-          <div class="fc-f"><div class="icon">🏘️</div><h3>地域3世代交流</h3><p>タップして詳細を見る</p></div>
-          <div class="fc-b"><p>子どもからシニアまで3世代が集まる安岡地区の一大イベント。消防車展示・段ボール広場・蕎書き広場など体験型コンテンツも充実！</p></div>
+          <div class="fc-f">
+            <div class="fc-f-bg" style="background-image:url('photos/gallery4.jpg')"></div>
+            <div class="fc-f-overlay"></div>
+            <div class="fc-flip-arrow">↺</div>
+            <div class="fc-f-content">
+              <span class="fc-f-badge">Community</span>
+              <h3>地域3世代交流</h3>
+              <p>タップして裏面を見る</p>
+            </div>
+          </div>
+          <div class="fc-b">
+            <div class="fc-b-title">3 Generations</div>
+            <p>子どもからシニアまで3世代が集まる安岡地区の一大イベント。消防車展示・段ボール広場・蕎書き広場など体験型コンテンツも充実！</p>
+          </div>
         </div>
       </div>
     </div>
@@ -507,9 +557,9 @@ footer a:hover{text-decoration:underline}
     <div class="s-label fade-in"><div class="s-label-line"></div><span class="s-label-text" style="color:var(--org)">Why Sponsor</span></div>
     <h2 class="s-title fade-in">協賛のメリット</h2>
     <div class="ben-grid fade-in">
-      <div class="ben-card"><div class="icon">🏆</div><h3>地域貢献企業としてアピール</h3><p>各日4,000名・2日間8,000名が来場する地域最大級イベントのスポンサーとして、SDGs推進企業・地域貢献企業としての存在感を高めることができます。</p></div>
-      <div class="ben-card"><div class="icon">📣</div><h3>広範な露出・認知向上</h3><p>公式HP・Instagram・チラシ（1万部発行）への掲載で、イベント前から当日・後まで長期間にわたって企業名・ロゴを露出。地域全体への認知向上が図れます。</p></div>
-      <div class="ben-card"><div class="icon">🤝</div><h3>地域ネットワークの拡大</h3><p>下関市・教育委員会後援の公的イベントへの参加。地元学校・自治会・事業者との繋がりを育み、長期的な地域密着経営の基盤となります。</p></div>
+      <div class="ben-card"><div class="svg-icon-dark"><svg viewBox="0 0 40 40" fill="none"><path d="M20 4l4 8 9 1.3-6.5 6.3 1.5 9L20 24l-8 4.6 1.5-9L7 13.3 16 12z" stroke="var(--org)" stroke-width="1.8" fill="rgba(255,107,53,.15)"/></svg></div><h3>地域貢献企業としてアピール</h3><p>各日4,000名・2日間8,000名が来場する地域最大級イベントのスポンサーとして、SDGs推進企業・地域貢献企業としての存在感を高めることができます。</p></div>
+      <div class="ben-card"><div class="svg-icon-dark"><svg viewBox="0 0 40 40" fill="none"><path d="M8 16h6l12-8v20L14 20H8a2 2 0 01-2-2v-2a2 2 0 012-2z" stroke="var(--org)" stroke-width="1.8" fill="rgba(255,107,53,.15)"/><path d="M28 14c2 1.5 3 3.5 3 6s-1 4.5-3 6" stroke="var(--org)" stroke-width="1.8" stroke-linecap="round"/></svg></div><h3>広範な露出・認知向上</h3><p>公式HP・Instagram・チラシ（1万部発行）への掲載で、イベント前から当日・後まで長期間にわたって企業名・ロゴを露出。地域全体への認知向上が図れます。</p></div>
+      <div class="ben-card"><div class="svg-icon-dark"><svg viewBox="0 0 40 40" fill="none"><path d="M6 22l8-8 6 6 8-10 6 6" stroke="var(--org)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="6" cy="22" r="2" fill="var(--org)"/><circle cx="14" cy="14" r="2" fill="var(--org)"/><circle cx="20" cy="20" r="2" fill="var(--org)"/><circle cx="28" cy="10" r="2" fill="var(--org)"/><circle cx="34" cy="16" r="2" fill="var(--org)"/></svg></div><h3>地域ネットワークの拡大</h3><p>下関市・教育委員会後援の公的イベントへの参加。地元学校・自治会・事業者との繋がりを育み、長期的な地域密着経営の基盤となります。</p></div>
     </div>
   </div>
 </section>
@@ -1094,7 +1144,11 @@ function showToast(txt){
   document.body.appendChild(el);setTimeout(function(){el.remove();},3000);
 }
 
-/* 音符バブル削除済み */
+/* バーグラフ アニメーション */
+var barObs = new IntersectionObserver(function(entries){
+  entries.forEach(function(e){if(e.isIntersecting){e.target.classList.add('anim');barObs.unobserve(e.target);}});
+},{threshold:0.5});
+document.querySelectorAll('.st-bar-fill').forEach(function(el){barObs.observe(el);});
 </script>
 </body>
 </html>
