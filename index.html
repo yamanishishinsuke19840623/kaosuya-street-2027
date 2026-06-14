@@ -224,19 +224,19 @@ section{padding:90px 24px;position:relative}
 .cm-text{font-size:13px;color:var(--dark);line-height:1.6}
 
 /* ===== MESSAGE ===== */
-#msg{background:linear-gradient(rgba(247,255,242,.80),rgba(255,255,255,.84)),url('photos/gallery1.jpg') center/cover no-repeat}
+#msg{background:linear-gradient(rgba(255,255,255,.94),rgba(247,255,242,.96)),url('photos/gallery1.jpg') center/cover no-repeat}
 .msg-inner{max-width:680px;margin:0 auto;text-align:center}
-.msg-inner blockquote{font-size:clamp(15px,3vw,21px);line-height:1.9;color:rgba(255,255,255,.9);position:relative;padding:28px 36px}
+.msg-inner blockquote{font-size:clamp(15px,3vw,21px);line-height:1.9;color:#1A3C1C;position:relative;padding:28px 36px}
 .msg-inner blockquote::before{content:'\201C';font-family:'Playfair Display',serif;font-size:72px;color:var(--org);position:absolute;top:-8px;left:0;line-height:1;opacity:.5}
 .msg-sig{margin-top:24px;color:var(--org-l);font-size:13px}
 .msg-sig strong{color:var(--gold);display:block;font-size:17px;margin-bottom:4px}
 
 /* ===== FAQ ===== */
-#faq{background:linear-gradient(rgba(247,255,242,.80),rgba(255,255,255,.84)),url('photos/gallery2.jpg') center/cover no-repeat}
-#faq .s-title{color:var(--dark)}
+#faq{background:linear-gradient(rgba(255,255,255,.94),rgba(247,255,242,.96)),url('photos/gallery2.jpg') center/cover no-repeat}
+#faq .s-title{color:#1A3C1C}
 #faq .s-label-text{color:var(--org)}
 .faq-item{background:#fff;border-radius:var(--rad);margin-bottom:10px;overflow:hidden;border:1px solid #e8e8e8}
-.faq-q{padding:16px 18px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-weight:700;font-size:14px;color:var(--dark);gap:12px}
+.faq-q{padding:16px 18px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-weight:700;font-size:14px;color:#1A3C1C;gap:12px}
 .faq-q::after{content:'▼';font-size:11px;color:var(--org);transition:transform .3s;flex-shrink:0}
 .faq-item.open .faq-q::after{transform:rotate(180deg)}
 .faq-a{max-height:0;overflow:hidden;transition:max-height .35s ease;padding:0 18px;font-size:13px;color:#555;line-height:1.9}
@@ -260,6 +260,8 @@ section{padding:90px 24px;position:relative}
 .sx{background:#000;color:#fff}.sx:hover{background:#222}
 .sl{background:#06C755;color:#fff}.sl:hover{background:#04a347}
 .sf{background:#1877F2;color:#fff}.sf:hover{background:#0d65d9}
+.si{background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);color:#fff}.si:hover{opacity:.85}
+.sth{background:#000;color:#fff;border:1.5px solid #555}.sth:hover{background:#1a1a1a}
 #qr-box{margin-top:22px}
 #qr-wrap{display:inline-block;background:#fff;padding:10px;border-radius:8px}
 
@@ -685,22 +687,6 @@ footer a:hover{text-decoration:underline}
         <div class="ig-thumb" style="background-image:url('photos/gallery4.jpg')"></div>
         <div class="ig-label">📸 Reel を見る</div>
       </a>
-      <a href="https://www.instagram.com/reel/DT46nrqgbgv/" target="_blank" rel="noopener" class="ig-card">
-        <div class="ig-thumb" style="background:linear-gradient(135deg,var(--org),var(--gold));display:flex;align-items:center;justify-content:center;font-size:48px">🎵</div>
-        <div class="ig-label">📸 Reel を見る</div>
-      </a>
-      <a href="https://www.instagram.com/reel/DHCB0bUz0Bh/" target="_blank" rel="noopener" class="ig-card">
-        <div class="ig-thumb" style="background:linear-gradient(135deg,var(--org),var(--gold));display:flex;align-items:center;justify-content:center;font-size:48px">🎪</div>
-        <div class="ig-label">📸 Reel を見る</div>
-      </a>
-      <a href="https://www.instagram.com/reel/C4uuDPjLtHX/" target="_blank" rel="noopener" class="ig-card">
-        <div class="ig-thumb" style="background:linear-gradient(135deg,var(--org-l),var(--org));display:flex;align-items:center;justify-content:center;font-size:48px">🎶</div>
-        <div class="ig-label">📸 Reel を見る</div>
-      </a>
-      <a href="https://www.instagram.com/reel/C4UmRSQLAx9/" target="_blank" rel="noopener" class="ig-card">
-        <div class="ig-thumb" style="background:linear-gradient(135deg,var(--gold),var(--org));display:flex;align-items:center;justify-content:center;font-size:48px">🌸</div>
-        <div class="ig-label">📸 Reel を見る</div>
-      </a>
     </div>
     <p class="fade-in" style="text-align:center;margin-top:24px">
       <a href="https://www.instagram.com/kaosuya_street/" target="_blank" rel="noopener" class="btn btn-o" style="display:inline-block">📸 Instagramをフォローする</a>
@@ -744,6 +730,8 @@ footer a:hover{text-decoration:underline}
           <button class="sbtn sx" onclick="sX()">𝕏 でシェア</button>
           <button class="sbtn sl" onclick="sL()">LINE でシェア</button>
           <button class="sbtn sf" onclick="sFB()">Facebook</button>
+          <button class="sbtn si" onclick="sIG()">📸 Instagram</button>
+          <button class="sbtn sth" onclick="sTH()">@ Threads</button>
         </div>
         <div id="qr-box" style="margin-top:22px">
           <p style="color:var(--sub);font-size:11px;margin-bottom:8px">QRコード（協賛募集ページ）</p>
@@ -1111,6 +1099,8 @@ var stxt = '【KAOSUYA STREET MUSIC FESTIVAL 2027】2027年3月13日・14日 下
 function sX(){window.open('https://twitter.com/intent/tweet?text='+encodeURIComponent(stxt)+'&url='+encodeURIComponent(surl),'_blank')}
 function sL(){window.open('https://social-plugins.line.me/lineit/share?url='+encodeURIComponent(surl),'_blank')}
 function sFB(){window.open('https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(surl),'_blank')}
+function sIG(){window.open('https://www.instagram.com/','_blank')}
+function sTH(){window.open('https://www.threads.net/intent/post?text='+encodeURIComponent(stxt+' '+surl),'_blank')}
 
 /* ===== QR ===== */
 try{new QRCode(document.getElementById('qr-wrap'),{text:surl,width:110,height:110,colorDark:'#0D0D1A',colorLight:'#FFFFFF',correctLevel:QRCode.CorrectLevel.M});}catch(e){}
