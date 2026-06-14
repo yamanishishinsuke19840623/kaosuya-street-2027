@@ -254,14 +254,18 @@ section{padding:90px 24px;position:relative}
 .fg select option{background:var(--dark);color:#fff}
 .fg textarea{resize:vertical;min-height:72px}
 .share-sec{margin-top:40px;text-align:center}
-.share-sec h3{color:var(--white);margin-bottom:14px;font-size:15px}
-.share-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
-.sbtn{padding:9px 18px;border-radius:50px;font-size:12px;font-weight:700;border:none;cursor:pointer;transition:all .3s}
-.sx{background:#000;color:#fff}.sx:hover{background:#222}
-.sl{background:#06C755;color:#fff}.sl:hover{background:#04a347}
-.sf{background:#1877F2;color:#fff}.sf:hover{background:#0d65d9}
-.si{background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);color:#fff}.si:hover{opacity:.85}
-.sth{background:#000;color:#fff;border:1.5px solid #555}.sth:hover{background:#1a1a1a}
+.share-sec h3{color:var(--white);margin-bottom:6px;font-size:15px;font-weight:700}
+.share-sec .share-note{font-size:11px;color:var(--sub);margin-bottom:14px}
+.share-btns{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;max-width:400px;margin:0 auto}
+.sbtn{padding:12px 16px;border-radius:12px;font-size:13px;font-weight:700;border:none;cursor:pointer;transition:all .3s;display:flex;align-items:center;justify-content:center;gap:6px;text-decoration:none}
+.sx{background:#000;color:#fff}.sx:hover{background:#222;transform:translateY(-2px)}
+.sl{background:#06C755;color:#fff}.sl:hover{background:#04a347;transform:translateY(-2px)}
+.sf{background:#1877F2;color:#fff}.sf:hover{background:#0d65d9;transform:translateY(-2px)}
+.sth{background:#101010;color:#fff;border:1.5px solid #444}.sth:hover{background:#222;transform:translateY(-2px)}
+.share-follow{margin-top:16px;max-width:400px;margin-left:auto;margin-right:auto}
+.share-follow h4{font-size:12px;color:var(--sub);margin-bottom:8px;font-weight:400;letter-spacing:.5px}
+.sfollow{display:inline-flex;align-items:center;gap:6px;padding:11px 24px;border-radius:12px;font-size:13px;font-weight:700;color:#fff;text-decoration:none;transition:all .3s;background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);width:100%;justify-content:center;box-sizing:border-box}
+.sfollow:hover{opacity:.85;transform:translateY(-2px)}
 #qr-box{margin-top:22px}
 #qr-wrap{display:inline-block;background:#fff;padding:10px;border-radius:8px}
 
@@ -726,12 +730,16 @@ footer a:hover{text-decoration:underline}
       </form>
       <div class="share-sec">
         <h3>このページをシェア</h3>
+        <p class="share-note">協賛募集ページのURLが自動で入ります</p>
         <div class="share-btns">
           <button class="sbtn sx" onclick="sX()">𝕏 でシェア</button>
           <button class="sbtn sl" onclick="sL()">LINE でシェア</button>
           <button class="sbtn sf" onclick="sFB()">Facebook</button>
-          <button class="sbtn si" onclick="sIG()">📸 Instagram</button>
           <button class="sbtn sth" onclick="sTH()">@ Threads</button>
+        </div>
+        <div class="share-follow" style="margin-top:16px">
+          <h4>▼ 公式SNSをフォロー</h4>
+          <a href="https://www.instagram.com/kaosuya_street/" target="_blank" rel="noopener" class="sfollow">📸 Instagram @kaosuya_street をフォロー</a>
         </div>
         <div id="qr-box" style="margin-top:22px">
           <p style="color:var(--sub);font-size:11px;margin-bottom:8px">QRコード（協賛募集ページ）</p>
@@ -1099,7 +1107,6 @@ var stxt = '【KAOSUYA STREET MUSIC FESTIVAL 2027】2027年3月13日・14日 下
 function sX(){window.open('https://twitter.com/intent/tweet?text='+encodeURIComponent(stxt)+'&url='+encodeURIComponent(surl),'_blank')}
 function sL(){window.open('https://social-plugins.line.me/lineit/share?url='+encodeURIComponent(surl),'_blank')}
 function sFB(){window.open('https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(surl),'_blank')}
-function sIG(){window.open('https://www.instagram.com/','_blank')}
 function sTH(){window.open('https://www.threads.net/intent/post?text='+encodeURIComponent(stxt+' '+surl),'_blank')}
 
 /* ===== QR ===== */
