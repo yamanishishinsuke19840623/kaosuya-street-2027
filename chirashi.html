@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>カオスやストリート2027 協賛募集チラシ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&family=Playfair+Display:wght@700&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+
+body{
+  font-family:'Noto Sans JP',sans-serif;
+  background:#ccc;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  padding:24px;
+  gap:16px;
+}
+
+.print-btn{
+  background:#2E7D32;color:#fff;border:none;
+  padding:10px 28px;border-radius:8px;font-size:14px;
+  font-weight:700;cursor:pointer;font-family:'Noto Sans JP',sans-serif;
+}
+.print-btn:hover{background:#1B5E20}
+
+/* ===== チラシ本体 ===== */
+.chirashi{
+  width:210mm;
+  height:297mm;
+  background:#fff;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+  box-shadow:0 8px 40px rgba(0,0,0,.25);
+  position:relative;
+}
+
+/* ① ロゴ 15% */
+.c-logo{
+  height:15%;
+  background:linear-gradient(160deg,#E8F5E9 0%,#F7FFF2 60%,#E3F2FD 100%);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  padding:8px 20px;
+  border-bottom:3px solid #2E7D32;
+  position:relative;
+}
+.c-logo::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;
+  height:3px;
+  background:linear-gradient(90deg,#2E7D32,#66BB6A,#FFD54F,#66BB6A,#2E7D32);
+}
+.c-logo img{max-height:85%;max-width:75%;object-fit:contain}
+.c-logo-catch{
+  font-size:10px;color:#2E7D32;font-weight:700;
+  letter-spacing:3px;text-align:center;
+}
+
+/* ② 写真 35% */
+.c-photo{
+  height:35%;
+  position:relative;
+  overflow:hidden;
+  flex-shrink:0;
+}
+.c-photo img{
+  width:100%;height:100%;
+  object-fit:cover;object-position:center 30%;
+}
+.c-photo-overlay{
+  position:absolute;inset:0;
+  background:linear-gradient(
+    to bottom,
+    rgba(0,0,0,.15) 0%,
+    rgba(0,40,20,.45) 40%,
+    rgba(0,30,15,.78) 100%
+  );
+  display:flex;flex-direction:column;
+  justify-content:space-between;
+  padding:14px 20px 18px;
+}
+.c-catch-list{
+  display:flex;flex-direction:column;gap:3px;
+}
+.c-catch-list span{
+  display:inline-block;
+  font-size:12.5px;font-weight:700;
+  color:rgba(255,255,255,.95);
+  letter-spacing:.5px;
+  text-shadow:0 1px 6px rgba(0,0,0,.5);
+}
+.c-catch-list span::before{
+  content:'✦ ';color:#FFD54F;font-size:9px;
+}
+.c-catch-main{
+  font-size:20px;font-weight:900;
+  color:#fff;line-height:1.45;
+  text-shadow:0 2px 16px rgba(0,0,0,.7);
+  border-left:4px solid #66BB6A;
+  padding-left:12px;
+}
+.c-catch-main em{
+  font-style:normal;
+  color:#FFD54F;
+}
+
+/* ③ 実績数字 20% */
+.c-stats{
+  height:20%;
+  background:linear-gradient(135deg,#1B5E20,#2E7D32);
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  padding:6px 12px;
+  flex-shrink:0;
+}
+.c-stats-head{
+  font-size:9px;letter-spacing:3px;
+  color:rgba(255,255,255,.55);
+  margin-bottom:8px;
+  text-align:center;
+}
+.c-stats-row{
+  display:flex;width:100%;justify-content:space-around;
+  align-items:center;
+  border:1px solid rgba(255,255,255,.15);
+  border-radius:10px;
+  padding:8px 0;
+  background:rgba(0,0,0,.12);
+}
+.c-stat{
+  flex:1;text-align:center;
+  padding:0 8px;
+  border-right:1px solid rgba(255,255,255,.15);
+}
+.c-stat:last-child{border-right:none}
+.c-stat-num{
+  font-family:'Playfair Display',serif;
+  font-size:38px;font-weight:700;
+  color:#FFD54F;line-height:1;
+}
+.c-stat-unit{font-size:16px;color:#A5D6A7}
+.c-stat-lbl{font-size:9.5px;color:rgba(255,255,255,.85);margin-top:3px;letter-spacing:.5px}
+.c-stats-note{
+  font-size:8.5px;color:rgba(255,255,255,.4);
+  margin-top:6px;letter-spacing:1px;
+}
+
+/* ④ 協賛企業 10% */
+.c-sponsors{
+  height:10%;
+  background:#fff;
+  border-top:1px solid #C8E6C9;
+  border-bottom:1px solid #C8E6C9;
+  display:flex;align-items:center;
+  padding:0 20px;gap:14px;
+  flex-shrink:0;
+}
+.c-sp-label{
+  font-size:8px;font-weight:700;color:#2E7D32;
+  letter-spacing:2px;
+  white-space:nowrap;
+  border-right:2px solid #C8E6C9;
+  padding-right:14px;
+}
+.c-sp-names{
+  display:flex;align-items:center;gap:12px;flex:1;flex-wrap:wrap;
+}
+.c-sp-name{
+  font-size:12px;font-weight:700;color:#1B5E20;
+  background:#F1F8E9;
+  border:1px solid #C8E6C9;border-radius:5px;
+  padding:4px 12px;white-space:nowrap;
+}
+.c-sp-more{
+  font-size:10px;color:#81C784;font-style:italic;
+}
+
+/* ⑤ QR 20% */
+.c-qr{
+  height:20%;
+  background:linear-gradient(160deg,#F7FFF2,#fff);
+  border-top:4px solid #FFD54F;
+  display:flex;
+  align-items:stretch;
+  flex-shrink:0;
+}
+.c-qr-left{
+  flex:1;
+  padding:12px 16px 12px 20px;
+  display:flex;flex-direction:column;justify-content:space-between;
+}
+.c-qr-title{
+  font-size:15px;font-weight:900;
+  color:#1B5E20;line-height:1.4;
+}
+.c-qr-title em{font-style:normal;color:#2E7D32}
+.c-benefits{
+  display:grid;grid-template-columns:1fr 1fr;gap:2px 8px;
+}
+.c-benefit{
+  font-size:9.5px;font-weight:700;color:#2E7D32;
+  display:flex;align-items:center;gap:4px;
+}
+.c-benefit::before{content:'■';color:#66BB6A;font-size:7px}
+.c-sig{
+  border-top:1px solid #C8E6C9;
+  padding-top:6px;
+  font-size:8.5px;color:#555;line-height:1.6;
+}
+.c-sig strong{color:#2E7D32;display:block;font-size:9.5px;margin-bottom:2px}
+.c-sig em{font-style:italic;color:#888}
+.c-qr-right{
+  width:110px;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  gap:6px;
+  padding:12px;
+  border-left:1px solid #C8E6C9;
+  background:#fff;
+}
+#c-qr-code canvas,#c-qr-code img{width:88px!important;height:88px!important}
+.c-qr-lbl{
+  font-size:8.5px;color:#333;
+  text-align:center;line-height:1.4;font-weight:700;
+}
+.c-qr-url{
+  font-size:6.5px;color:#888;
+  text-align:center;word-break:break-all;
+}
+
+/* 印刷 */
+@media print{
+  body{background:none;padding:0}
+  .no-print{display:none}
+  .chirashi{box-shadow:none;width:210mm;height:297mm;page-break-after:avoid}
+}
+</style>
+</head>
+<body>
+
+<button class="print-btn no-print" onclick="window.print()">🖨️ 印刷 / PDF保存</button>
+
+<div class="chirashi">
+
+  <!-- ① ロゴ -->
+  <div class="c-logo">
+    <img src="photos/logo.png" alt="カオスやストリート MUSIC FESTIVAL 2027">
+    <div class="c-logo-catch">子どもたちの「やってみたい」を応援する企業を募集しています</div>
+  </div>
+
+  <!-- ② 写真＋キャッチ -->
+  <div class="c-photo">
+    <img src="photos/hero.png" alt="カオスやストリート会場">
+    <div class="c-photo-overlay">
+      <div class="c-catch-list">
+        <span>音楽をやってみたい</span>
+        <span>ステージに立ってみたい</span>
+        <span>お店を出してみたい</span>
+        <span>誰かを笑顔にしてみたい</span>
+      </div>
+      <div>
+        <div class="c-catch-main">
+          その「やってみたい」が<br>
+          <em>地域の未来</em>になる。
+        </div>
+        <div style="margin-top:10px;font-size:10px;color:rgba(255,255,255,.75);letter-spacing:1px">
+          第8回ストリートミュージックフェスティバル&emsp;2027年3月13日(土)・14日(日)&emsp;下関市安岡地区公園&emsp;来場目標 8,000名
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ③ 実績数字 -->
+  <div class="c-stats">
+    <div class="c-stats-head">2 0 2 6 年 開 催 実 績（第 7 回）</div>
+    <div class="c-stats-row">
+      <div class="c-stat">
+        <div class="c-stat-num">5,000<span class="c-stat-unit">名</span></div>
+        <div class="c-stat-lbl">2日間来場者数</div>
+      </div>
+      <div class="c-stat">
+        <div class="c-stat-num">24<span class="c-stat-unit">組</span></div>
+        <div class="c-stat-lbl">出演アーティスト</div>
+      </div>
+      <div class="c-stat">
+        <div class="c-stat-num">51<span class="c-stat-unit">店</span></div>
+        <div class="c-stat-lbl">マルシェ出店数</div>
+      </div>
+    </div>
+    <div class="c-stats-note">7年連続開催 ／ Instagram月間リーチ 1,673アカウント ／ フォロワー 758名</div>
+  </div>
+
+  <!-- ④ 協賛企業 -->
+  <div class="c-sponsors">
+    <div class="c-sp-label">ご協賛<br>企業様</div>
+    <div class="c-sp-names">
+      <img src="photos/yasunari_logo.jpg" alt="株式会社安成工務店" style="height:32px;object-fit:contain;border-radius:4px">
+      <div class="c-sp-name">山西水産株式会社</div>
+      <div class="c-sp-more">ほか協賛企業募集中</div>
+    </div>
+  </div>
+
+  <!-- ⑤ QR＋協賛特典 -->
+  <div class="c-qr">
+    <div class="c-qr-left">
+      <div class="c-qr-title">地域の未来を、<br><em>一緒につくりませんか？</em></div>
+      <div class="c-benefits">
+        <div class="c-benefit">会場内バナー掲載</div>
+        <div class="c-benefit">公式ホームページ掲載</div>
+        <div class="c-benefit">SNSで企業紹介</div>
+        <div class="c-benefit">地域貢献活動として活用可能</div>
+      </div>
+      <div class="c-sig">
+        <strong>カオスやストリート2027実行委員会　実行委員長 山西伸典</strong>
+        <em>「地域の子どもたちに、挑戦できる場所を残したい。」</em>
+      </div>
+    </div>
+    <div class="c-qr-right">
+      <div id="c-qr-code"></div>
+      <div class="c-qr-lbl">協賛募集ページ<br>はこちら</div>
+      <div class="c-qr-url">yamanishishinsuke19840623<br>.github.io/kaosuya-street-2027/</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+new QRCode(document.getElementById('c-qr-code'), {
+  text: 'https://yamanishishinsuke19840623.github.io/kaosuya-street-2027/',
+  width: 88, height: 88,
+  colorDark: '#1B5E20', colorLight: '#ffffff',
+  correctLevel: QRCode.CorrectLevel.M
+});
+</script>
+</body>
+</html>
