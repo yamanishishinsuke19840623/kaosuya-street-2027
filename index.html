@@ -321,6 +321,7 @@ footer a:hover{text-decoration:underline}
 .ft-sns a:hover{color:var(--org)}
 
 @media(max-width:768px){section{padding:64px 16px}.gal-grid{gap:6px}.plans-grid{gap:18px}}
+@media(max-width:700px){#access .access-grid{grid-template-columns:1fr!important}}
 
 /* ===== 浮遊バブル（音符・葉・しゃぼん玉） ===== */
 .float-bub{position:fixed;pointer-events:none;z-index:0;user-select:none;line-height:1;animation:floatUp 7s ease-out forwards}
@@ -716,6 +717,39 @@ footer a:hover{text-decoration:underline}
     <p class="fade-in" style="text-align:center;margin-top:24px">
       <a href="https://www.instagram.com/kaosuya_street/" target="_blank" rel="noopener" class="btn btn-o" style="display:inline-block">📸 Instagramをフォローする</a>
     </p>
+  </div>
+</section>
+
+<!-- ===== ACCESS ===== -->
+<section id="access" style="padding:90px 24px;background:linear-gradient(rgba(13,13,26,.88),rgba(13,13,26,.94)),url('photos/gallery2.jpg') center/cover no-repeat">
+  <div class="ctr">
+    <div class="s-label fade-in" style="justify-content:center"><div class="s-label-line"></div><span class="s-label-text" style="color:var(--org)">Access</span><div class="s-label-line"></div></div>
+    <h2 class="s-title s-title-c fade-in">会場アクセス</h2>
+    <div class="fade-in" style="display:grid;grid-template-columns:1fr 1fr;gap:28px;max-width:900px;margin:0 auto;align-items:start">
+      <div style="border-radius:16px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.4)">
+        <iframe
+          src="https://maps.google.com/maps?q=安岡地区公園+下関市&output=embed&hl=ja&z=15"
+          width="100%" height="340" style="border:0;display:block" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:16px;padding:8px 0">
+        <div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,107,53,.2);border-radius:12px;padding:20px">
+          <div style="font-size:10px;letter-spacing:3px;color:var(--org);margin-bottom:8px">VENUE</div>
+          <div style="font-size:18px;font-weight:900;color:#fff;margin-bottom:4px">下関安岡地区公園</div>
+          <div style="font-size:13px;color:var(--sub)">山口県下関市安岡町</div>
+        </div>
+        <div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,107,53,.2);border-radius:12px;padding:20px">
+          <div style="font-size:10px;letter-spacing:3px;color:var(--org);margin-bottom:10px">ACCESS</div>
+          <div style="display:flex;flex-direction:column;gap:10px;font-size:13px;color:rgba(255,255,255,.8)">
+            <div style="display:flex;gap:10px;align-items:flex-start"><span style="color:var(--org);font-weight:700;flex-shrink:0">🚃</span><span>JR山陰本線「安岡駅」より徒歩約15分</span></div>
+            <div style="display:flex;gap:10px;align-items:flex-start"><span style="color:var(--org);font-weight:700;flex-shrink:0">🚗</span><span>山陽道「下関IC」より車で約20分<br>駐車場あり（無料）</span></div>
+            <div style="display:flex;gap:10px;align-items:flex-start"><span style="color:var(--org);font-weight:700;flex-shrink:0">☔</span><span>雨天決行・荒天時のみ中止</span></div>
+          </div>
+        </div>
+        <a href="https://maps.google.com/maps?q=下関市安岡地区公園" target="_blank" rel="noopener" class="btn btn-o" style="text-align:center;display:block">
+          Google マップで開く →
+        </a>
+      </div>
+    </div>
   </div>
 </section>
 
