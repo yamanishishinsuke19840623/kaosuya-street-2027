@@ -116,7 +116,10 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--dark);color:var(--wh
 .h-tagline{width:28px;height:1px;background:linear-gradient(90deg,var(--org),var(--gold))}
 .h-tagtext{font-size:11px;letter-spacing:4px;color:var(--gold);text-transform:uppercase}
 .h-edition{display:inline-block;background:rgba(255,107,53,.2);border:1px solid rgba(255,107,53,.5);border-radius:24px;padding:6px 20px;font-size:12px;color:var(--org-l);letter-spacing:2px;margin-bottom:20px}
-#h-logo{max-width:min(480px,85vw);margin-bottom:8px;filter:drop-shadow(0 0 6px #fff) drop-shadow(0 0 10px #fff) drop-shadow(0 0 18px rgba(255,255,255,.7));position:relative;z-index:1}
+#h-logo-wrap{position:relative;display:inline-block;margin-bottom:8px;z-index:1}
+#h-logo-wrap::before{content:'';position:absolute;inset:-28%;background:radial-gradient(ellipse at center,rgba(255,255,255,.92) 0%,rgba(255,255,255,.65) 30%,rgba(255,255,255,.18) 58%,transparent 75%);filter:blur(22px);border-radius:50%;z-index:0;pointer-events:none;animation:logoPulse 3s ease-in-out infinite}
+@keyframes logoPulse{0%,100%{opacity:.85;transform:scale(1)}50%{opacity:1;transform:scale(1.06)}}
+#h-logo{max-width:min(380px,80vw);position:relative;z-index:1;display:block}
 .h-year{font-family:'Playfair Display',serif;font-style:italic;font-size:clamp(48px,12vw,110px);font-weight:700;line-height:1;background:linear-gradient(135deg,var(--gold),#A5F3A5);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;filter:drop-shadow(0 4px 24px rgba(255,213,79,.4));margin-bottom:12px;position:relative;z-index:1}
 .h-typing{font-size:clamp(16px,3.5vw,22px);color:rgba(255,255,255,.96);font-weight:700;min-height:38px;margin-bottom:28px;position:relative;z-index:1;text-shadow:0 2px 12px rgba(0,0,0,.6)}
 .h-typing::after{content:'|';animation:blink .7s infinite;color:var(--gold)}
@@ -452,7 +455,9 @@ footer a:hover{text-decoration:underline}
   <div id="hero-ball"></div>
   <div class="h-tag fade-in"><div class="h-tagline"></div><span class="h-tagtext">8th Anniversary</span><div class="h-tagline"></div></div>
   <div class="h-edition fade-in">第8回 ストリートミュージックフェスティバル</div>
-  <img src="photos/logo.png" id="h-logo" class="fade-in" alt="KAOSUYA STREET MUSIC FESTIVAL 2027" onerror="this.style.display='none'">
+  <div id="h-logo-wrap" class="fade-in">
+    <img src="photos/logo.png" id="h-logo" alt="KAOSUYA STREET MUSIC FESTIVAL 2027" onerror="this.style.display='none'">
+  </div>
   <div class="h-year fade-in">2027</div>
   <div class="h-typing fade-in" id="h-typing"></div>
   <div class="h-date fade-in">📅 2027年3月13日(土)・14日(日)&ensp;10:00〜16:00</div>
