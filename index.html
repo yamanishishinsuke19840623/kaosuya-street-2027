@@ -40,6 +40,47 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--dark);color:var(--wh
 ::-webkit-scrollbar-track{background:var(--dark)}
 ::-webkit-scrollbar-thumb{background:var(--org);border-radius:2px}
 
+/* ===== LOADER ===== */
+#loader{position:fixed;inset:0;background:var(--dark);z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;transition:opacity .7s ease,visibility .7s ease}
+#loader.hide{opacity:0;visibility:hidden}
+#loader-logo{width:min(260px,70vw);animation:loaderPop .8s cubic-bezier(.34,1.56,.64,1) both}
+@keyframes loaderPop{from{opacity:0;transform:scale(.6) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}
+#loader-track{width:min(220px,60vw);height:3px;background:rgba(255,255,255,.1);border-radius:2px;overflow:hidden}
+#loader-fill{height:100%;background:linear-gradient(90deg,var(--org),var(--gold));border-radius:2px;width:0%;animation:loaderBar 1.8s ease forwards .3s}
+@keyframes loaderBar{0%{width:0%}60%{width:75%}100%{width:100%}}
+#loader-text{font-size:11px;letter-spacing:4px;color:var(--sub);animation:fadeIn .6s ease .5s both}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+/* ===== LINE浮きボタン ===== */
+#line-btn{position:fixed;bottom:84px;right:16px;background:#06C755;color:#fff;border-radius:50px;padding:10px 18px;font-size:12px;font-weight:700;text-decoration:none;display:flex;align-items:center;gap:7px;z-index:9997;box-shadow:0 4px 20px rgba(6,199,85,.45);transition:transform .2s,box-shadow .2s}
+#line-btn:hover{transform:translateY(-3px);box-shadow:0 8px 28px rgba(6,199,85,.6)}
+#line-btn svg{width:18px;height:18px;fill:#fff}
+
+/* ===== ROI計算機 ===== */
+#roi{background:linear-gradient(135deg,#0a1628,#0d2040)}
+.roi-wrap{max-width:780px;margin:0 auto}
+.roi-select{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:28px}
+.roi-plan{border:2px solid rgba(255,255,255,.1);border-radius:14px;padding:20px;cursor:pointer;transition:all .3s;text-align:center}
+.roi-plan.active.pt{border-color:var(--gold);background:rgba(255,215,0,.08)}
+.roi-plan.active.gd{border-color:var(--org);background:rgba(255,107,53,.08)}
+.roi-plan h4{font-size:15px;font-weight:900;color:#fff;margin-bottom:4px}
+.roi-plan .price{font-size:22px;font-weight:900;color:var(--gold);margin:6px 0}
+.roi-plan p{font-size:11px;color:var(--sub)}
+.roi-kuchi{display:flex;align-items:center;gap:16px;margin-bottom:28px;flex-wrap:wrap}
+.roi-kuchi label{color:var(--sub);font-size:13px}
+.roi-kuchi input{width:72px;padding:8px 12px;background:rgba(255,255,255,.08);border:1px solid rgba(255,107,53,.3);border-radius:8px;color:#fff;font-size:16px;font-weight:700;text-align:center;font-family:inherit}
+.roi-result{background:rgba(255,255,255,.04);border:1px solid rgba(255,107,53,.2);border-radius:16px;padding:28px;display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:20px}
+.roi-item{text-align:center}
+.roi-num{font-size:clamp(22px,4vw,36px);font-weight:900;color:var(--gold);line-height:1}
+.roi-lbl{font-size:11px;color:var(--sub);margin-top:6px;line-height:1.6}
+.roi-compare{margin-top:24px;padding-top:20px;border-top:1px solid rgba(255,255,255,.08)}
+.roi-compare h4{font-size:12px;letter-spacing:2px;color:var(--org);margin-bottom:14px}
+.roi-bar-row{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.roi-bar-label{font-size:12px;color:var(--sub);width:120px;flex-shrink:0;text-align:right}
+.roi-bar-track{flex:1;height:8px;background:rgba(255,255,255,.08);border-radius:4px;overflow:hidden}
+.roi-bar-val{height:100%;border-radius:4px;transition:width 1s ease}
+.roi-bar-price{font-size:11px;color:#fff;font-weight:700;width:60px;flex-shrink:0}
+
 /* ===== CURSOR ===== */
 #cc{position:fixed;width:28px;height:28px;font-size:20px;line-height:1;pointer-events:none;z-index:99999;transform:translate(-50%,-50%);transition:transform .08s;user-select:none}
 @media(max-width:768px){#cc{display:none}}
@@ -63,10 +104,12 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--dark);color:var(--wh
 
 /* ===== HERO ===== */
 #hero{min-height:100svh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:100px 24px 60px;position:relative;overflow:hidden;background:var(--dark)}
-#hero-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;opacity:.6}
-#hero-video-overlay{position:absolute;inset:0;background:linear-gradient(rgba(13,13,26,.3) 0%,rgba(13,13,26,.55) 60%,rgba(13,13,26,.85) 100%);z-index:1}
-#hero>*:not(#hero-video):not(#hero-video-overlay):not(#hero-glow):not(#hero-ball){position:relative;z-index:2}
-#hero-glow,#hero-ball{z-index:1}
+#hero-video-blur{position:absolute;inset:-40px;width:calc(100% + 80px);height:calc(100% + 80px);object-fit:cover;z-index:0;opacity:.35;filter:blur(18px) brightness(.5);transform:scale(1.1)}
+#hero-video{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);height:100%;width:auto;min-width:56%;max-width:none;z-index:1;opacity:.85;object-fit:contain}
+@media(max-width:768px){#hero-video{height:auto;width:100%;min-width:unset}}
+#hero-video-overlay{position:absolute;inset:0;background:linear-gradient(rgba(13,13,26,.15) 0%,rgba(13,13,26,.45) 65%,rgba(13,13,26,.88) 100%);z-index:2}
+#hero>*:not(#hero-video):not(#hero-video-blur):not(#hero-video-overlay):not(#hero-glow):not(#hero-ball){position:relative;z-index:3}
+#hero-glow,#hero-ball{z-index:2}
 #hero-glow{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:800px;height:600px;background:radial-gradient(circle,rgba(102,187,106,.15) 0%,rgba(66,165,245,.06) 40%,transparent 70%);filter:blur(60px);pointer-events:none}
 #hero-ball{position:absolute;top:50%;left:50%;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(102,187,106,.06),transparent 70%);transform:translate(-50%,-50%);pointer-events:none}
 .h-tag{display:inline-flex;align-items:center;gap:10px;margin-bottom:16px}
@@ -351,6 +394,19 @@ footer a:hover{text-decoration:underline}
 </head>
 <body>
 
+<!-- ローディング -->
+<div id="loader">
+  <img id="loader-logo" src="photos/logo.png" alt="カオスやストリート2027">
+  <div id="loader-track"><div id="loader-fill"></div></div>
+  <div id="loader-text">KAOSUYA STREET MUSIC FESTIVAL 2027</div>
+</div>
+
+<!-- LINE浮きボタン -->
+<a id="line-btn" href="https://lin.ee/XXXXXXX" target="_blank" rel="noopener">
+  <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.02 2 11c0 3.16 1.72 5.95 4.35 7.65L5.5 22l3.6-1.9C10 20.37 11 20.5 12 20.5c5.52 0 10-4.02 10-9S17.52 2 12 2zm-2.5 11.5h-1.75v-5h1.75v5zm3.25 0h-1.75v-5h1.75v5zm3.25 0h-1.75v-5h1.75v5z"/></svg>
+  LINEで問い合わせ
+</a>
+
 <!-- カーソル -->
 <div id="cc">🎵</div>
 <!-- スクロール -->
@@ -385,6 +441,9 @@ footer a:hover{text-decoration:underline}
 
 <!-- ===== HERO ===== -->
 <section id="hero">
+  <video id="hero-video-blur" autoplay muted loop playsinline preload="auto" aria-hidden="true">
+    <source src="photos/hero.mp4" type="video/mp4">
+  </video>
   <video id="hero-video" autoplay muted loop playsinline preload="auto" poster="photos/hero.png">
     <source src="photos/hero.mp4" type="video/mp4">
   </video>
@@ -669,6 +728,70 @@ footer a:hover{text-decoration:underline}
         KAOSUYA STREET MUSIC FESTIVAL 実行委員長<br>
         Ystudio+（ワイスタジオプラス）代表
       </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== ROI計算機 ===== -->
+<section id="roi">
+  <div class="ctr roi-wrap">
+    <div class="s-label fade-in" style="justify-content:center"><div class="s-label-line"></div><span class="s-label-text" style="color:var(--gold)">ROI Calculator</span><div class="s-label-line"></div></div>
+    <h2 class="s-title s-title-c fade-in" style="color:#fff">協賛の費用対効果を計算する</h2>
+    <p class="fade-in" style="text-align:center;color:var(--sub);margin-bottom:32px;font-size:14px">プランと口数を選ぶだけで、あなたの広告効果がわかります</p>
+
+    <div class="roi-select fade-in">
+      <div class="roi-plan pt active" onclick="setRoiPlan('pt',this)">
+        <h4>🥇 プラチナスポンサー</h4>
+        <div class="price">¥33,000<small style="font-size:.4em;color:var(--sub)">/口</small></div>
+        <p>HP・SNS・チラシ・バナー全掲載</p>
+      </div>
+      <div class="roi-plan gd" onclick="setRoiPlan('gd',this)">
+        <h4>🥈 ゴールドスポンサー</h4>
+        <div class="price" style="color:var(--org-l)">¥11,000<small style="font-size:.4em;color:var(--sub)">/口</small></div>
+        <p>HP・チラシ・SNSに掲載</p>
+      </div>
+    </div>
+
+    <div class="roi-kuchi fade-in">
+      <label>口数：</label>
+      <input type="number" id="roi-count" value="1" min="1" max="10" oninput="calcRoi()">
+      <span style="color:var(--sub);font-size:13px">口</span>
+    </div>
+
+    <div class="roi-result fade-in" id="roi-result">
+      <div class="roi-item"><div class="roi-num" id="roi-cost">¥33,000</div><div class="roi-lbl">協賛総額</div></div>
+      <div class="roi-item"><div class="roi-num" id="roi-reach">16,000</div><div class="roi-lbl">来場者リーチ数<br>（2日間合計）</div></div>
+      <div class="roi-item"><div class="roi-num" id="roi-cpa">¥2.1</div><div class="roi-lbl">1人あたりコスト<br>（来場者単価）</div></div>
+      <div class="roi-item"><div class="roi-num" id="roi-flyer">10,000</div><div class="roi-lbl">チラシ配布での<br>露出数（部）</div></div>
+    </div>
+
+    <div class="roi-compare fade-in">
+      <h4>他の広告手段との比較（1人あたりコスト）</h4>
+      <div class="roi-bar-row">
+        <div class="roi-bar-label">カオスや協賛</div>
+        <div class="roi-bar-track"><div class="roi-bar-val" id="rb-kaosuya" style="width:4%;background:linear-gradient(90deg,var(--org),var(--gold))"></div></div>
+        <div class="roi-bar-price" id="rb-kaosuya-p">¥2</div>
+      </div>
+      <div class="roi-bar-row">
+        <div class="roi-bar-label">チラシ配布</div>
+        <div class="roi-bar-track"><div class="roi-bar-val" style="width:30%;background:#888"></div></div>
+        <div class="roi-bar-price">¥30〜50</div>
+      </div>
+      <div class="roi-bar-row">
+        <div class="roi-bar-label">SNS広告</div>
+        <div class="roi-bar-track"><div class="roi-bar-val" style="width:50%;background:#888"></div></div>
+        <div class="roi-bar-price">¥50〜80</div>
+      </div>
+      <div class="roi-bar-row">
+        <div class="roi-bar-label">新聞折込</div>
+        <div class="roi-bar-track"><div class="roi-bar-val" style="width:80%;background:#888"></div></div>
+        <div class="roi-bar-price">¥80〜120</div>
+      </div>
+      <p style="font-size:11px;color:rgba(255,255,255,.3);margin-top:14px">※来場者数は各日4,000名（2日計8,000名）＋チラシ10,000部をもとに試算。実際の効果は異なる場合があります。</p>
+    </div>
+
+    <div class="fade-in" style="text-align:center;margin-top:28px">
+      <a href="#contact" class="btn btn-p">この効果で協賛を申し込む →</a>
     </div>
   </div>
 </section>
@@ -1207,6 +1330,40 @@ function showToast(txt){
   var el=document.createElement('div');el.className='toast';el.textContent=txt;
   document.body.appendChild(el);setTimeout(function(){el.remove();},3000);
 }
+
+/* ===== LOADER ===== */
+(function(){
+  var ldr = document.getElementById('loader');
+  window.addEventListener('load', function(){
+    setTimeout(function(){ldr.classList.add('hide');}, 2000);
+  });
+  setTimeout(function(){ldr.classList.add('hide');}, 3500);
+})();
+
+/* ===== ROI計算機 ===== */
+var roiPlan = 'pt';
+var roiPrices = {pt:33000, gd:11000};
+function setRoiPlan(plan, el) {
+  roiPlan = plan;
+  document.querySelectorAll('.roi-plan').forEach(function(p){p.classList.remove('active');});
+  el.classList.add('active');
+  calcRoi();
+}
+function calcRoi() {
+  var count = Math.max(1, parseInt(document.getElementById('roi-count').value)||1);
+  var price = roiPrices[roiPlan];
+  var total = price * count;
+  var reach = 8000 + 10000;
+  var cpa = (total / reach).toFixed(1);
+  document.getElementById('roi-cost').textContent = '¥' + total.toLocaleString();
+  document.getElementById('roi-reach').textContent = reach.toLocaleString();
+  document.getElementById('roi-cpa').textContent = '¥' + cpa;
+  document.getElementById('roi-flyer').textContent = (10000).toLocaleString();
+  var pct = Math.min(Math.round(parseFloat(cpa) / 120 * 100), 100);
+  document.getElementById('rb-kaosuya').style.width = Math.max(pct, 3) + '%';
+  document.getElementById('rb-kaosuya-p').textContent = '¥' + cpa;
+}
+calcRoi();
 
 /* バーグラフ アニメーション */
 var barObs = new IntersectionObserver(function(entries){
