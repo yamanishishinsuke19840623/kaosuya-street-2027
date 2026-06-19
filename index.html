@@ -188,22 +188,17 @@ section{padding:90px 24px;position:relative}
 .ic-xl svg{width:44px;height:44px}
 .st-lbl{font-size:12px;color:var(--sub);margin-top:6px;letter-spacing:.5px;line-height:1.4}
 
-/* ===== HISTOGRAM ===== */
-.about-hist{display:flex;gap:clamp(10px,2.5vw,24px);align-items:flex-end;justify-content:center;margin:0 auto 48px;max-width:760px}
-.hb-group{display:flex;flex-direction:column;align-items:center;flex:1}
-.hb-val{text-align:center;margin-bottom:14px;min-height:56px;display:flex;align-items:flex-end;justify-content:center;gap:1px;line-height:1}
-.hb-big{font-family:'Playfair Display',serif;font-size:clamp(28px,4.5vw,46px);font-weight:700;color:var(--org-d);line-height:1;display:block}
-.hb-un{font-size:clamp(14px,2vw,20px);font-weight:900;color:var(--org);padding-bottom:5px}
-.hb-track{width:100%;height:200px;background:rgba(46,125,50,.08);border-radius:10px 10px 0 0;display:flex;flex-direction:column;justify-content:flex-end;position:relative;overflow:hidden}
-.hb-fill{width:100%;height:0%;border-radius:10px 10px 0 0;transition:height 1.7s cubic-bezier(.25,1.1,.5,1)}
-.hb-fill-g{background:linear-gradient(to top,#1B5E20 0%,#2E7D32 45%,#43A047 75%,#66BB6A 100%)}
-.hb-fill-a{background:linear-gradient(to top,#1B5E20 0%,#256427 45%,#388E3C 75%,#81C784 100%)}
-.hb-fill::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:rgba(255,255,255,.35);border-radius:2px}
-.hb-shine{position:absolute;top:0;left:0;right:0;height:60%;background:linear-gradient(to bottom,rgba(255,255,255,.12),transparent);border-radius:10px 10px 0 0;pointer-events:none}
-.hb-base{width:100%;height:4px;background:linear-gradient(90deg,var(--org-d),var(--org),var(--org-l));border-radius:0 0 3px 3px;margin-bottom:12px}
-.hb-lbl{font-size:12px;color:var(--sub);text-align:center;line-height:1.55;font-weight:700}
-.hb-lbl small{font-size:10px;font-weight:400;display:block;margin-top:3px;opacity:.7;line-height:1.4}
-@media(max-width:480px){.hb-track{height:130px}.hb-big{font-size:24px}.hb-un{font-size:14px}.hb-lbl{font-size:10px}}
+/* ===== STAT CARDS ===== */
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:18px;margin-bottom:44px}
+.stat-card{background:#fff;border-radius:18px;padding:28px 18px 22px;text-align:center;box-shadow:0 4px 28px rgba(46,125,50,.10);border-top:5px solid var(--org);position:relative;overflow:hidden;transition:transform .25s,box-shadow .25s}
+.stat-card:hover{transform:translateY(-4px);box-shadow:0 10px 36px rgba(46,125,50,.16)}
+.stat-card::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at top,rgba(46,125,50,.05) 0%,transparent 65%);pointer-events:none}
+.stat-icon-wrap{width:54px;height:54px;border-radius:14px;background:linear-gradient(135deg,rgba(46,125,50,.12),rgba(102,187,106,.08));display:flex;align-items:center;justify-content:center;margin:0 auto 16px}
+.stat-big{font-family:'Playfair Display',serif;font-size:clamp(38px,6.5vw,58px);font-weight:700;color:var(--org);line-height:1;letter-spacing:-1px}
+.stat-unit{font-size:clamp(17px,2.5vw,22px);color:var(--org-l);font-weight:900;letter-spacing:0}
+.stat-lbl{font-size:14px;font-weight:700;color:#1B5E20;margin:9px 0 5px;letter-spacing:.3px}
+.stat-desc{font-size:11px;color:#4A7041;line-height:1.65}
+@media(max-width:500px){.stat-grid{grid-template-columns:1fr 1fr}.stat-big{font-size:34px}}
 
 /* ===== SAKURA ===== */
 .sakura{position:fixed;pointer-events:none;z-index:9990;animation:sakuraFall linear both}
@@ -517,46 +512,38 @@ footer a:hover{text-decoration:underline}
   <div class="ctr">
     <div class="s-label fade-in"><div class="s-label-line"></div><span class="s-label-text">なぜ開催するのか</span></div>
     <h2 class="s-title fade-in">地域の居場所をつくること、<br>それが私たちの目的です。</h2>
-    <div class="about-hist fade-in" id="about-hist">
-      <div class="hb-group">
-        <div class="hb-val">
-          <span class="hb-big" data-count="50">0</span><span class="hb-un">店</span>
+    <div class="stat-grid fade-in">
+      <div class="stat-card">
+        <div class="stat-icon-wrap">
+          <span class="ic ic-md" style="color:var(--org)"><svg viewBox="0 0 24 24"><path d="M3 9h18v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z"/><path d="M3 9l2.45-4.9A2 2 0 0 1 7.24 3h9.52a2 2 0 0 1 1.8 1.1L21 9"/><line x1="12" y1="3" x2="12" y2="9"/></svg></span>
         </div>
-        <div class="hb-track">
-          <div class="hb-fill hb-fill-g" data-h="78"><div class="hb-shine"></div></div>
-        </div>
-        <div class="hb-base"></div>
-        <div class="hb-lbl">以上 出店<small>子どもからシニアまで楽しめる空間</small></div>
+        <div class="stat-big"><span data-count="50">0</span><span class="stat-unit">+</span></div>
+        <div class="stat-lbl">店以上 出店</div>
+        <div class="stat-desc">子どもからシニアまで<br>誰もが楽しめる空間</div>
       </div>
-      <div class="hb-group">
-        <div class="hb-val">
-          <span class="hb-big" data-count="8">0</span><span class="hb-un">回</span>
+      <div class="stat-card">
+        <div class="stat-icon-wrap">
+          <span class="ic ic-md" style="color:var(--org)"><svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></span>
         </div>
-        <div class="hb-track">
-          <div class="hb-fill hb-fill-a" data-h="65"><div class="hb-shine"></div></div>
-        </div>
-        <div class="hb-base"></div>
-        <div class="hb-lbl">目の開催<small>2020年スタート 継続イベント</small></div>
+        <div class="stat-big"><span data-count="8">0</span><span class="stat-unit">回</span></div>
+        <div class="stat-lbl">目の開催</div>
+        <div class="stat-desc">2020年スタート<br>地域に根ざした継続イベント</div>
       </div>
-      <div class="hb-group">
-        <div class="hb-val">
-          <span class="hb-big" data-count="4000">0</span><span class="hb-un">名</span>
+      <div class="stat-card">
+        <div class="stat-icon-wrap">
+          <span class="ic ic-md" style="color:var(--org)"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
         </div>
-        <div class="hb-track">
-          <div class="hb-fill hb-fill-g" data-h="100"><div class="hb-shine"></div></div>
-        </div>
-        <div class="hb-base"></div>
-        <div class="hb-lbl">名/日 来場目標<small>家族・地域が集う2日間</small></div>
+        <div class="stat-big"><span data-count="4000">0</span><span class="stat-unit">名</span></div>
+        <div class="stat-lbl">名/日 来場目標</div>
+        <div class="stat-desc">家族・地域の方々が<br>一緒に過ごす2日間</div>
       </div>
-      <div class="hb-group">
-        <div class="hb-val">
-          <span class="hb-big" data-count="3">0</span><span class="hb-un">世代</span>
+      <div class="stat-card">
+        <div class="stat-icon-wrap">
+          <span class="ic ic-md" style="color:var(--org)"><svg viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg></span>
         </div>
-        <div class="hb-track">
-          <div class="hb-fill hb-fill-a" data-h="58"><div class="hb-shine"></div></div>
-        </div>
-        <div class="hb-base"></div>
-        <div class="hb-lbl">世代が交流<small>子ども・学生・大人・シニア</small></div>
+        <div class="stat-big"><span data-count="3">0</span><span class="stat-unit">世代</span></div>
+        <div class="stat-lbl">世代が交流</div>
+        <div class="stat-desc">子ども・学生・大人・シニア<br>世代を超えたつながり</div>
       </div>
     </div>
     <p class="about-body fade-in">
