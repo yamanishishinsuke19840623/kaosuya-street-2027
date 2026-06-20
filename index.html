@@ -855,6 +855,30 @@ footer a:hover{text-decoration:underline}
   </div>
 </section>
 
+<!-- ===== FLYER ===== -->
+<section id="flyer" style="background:linear-gradient(135deg,#E8F5E9,#F7FFF2);padding:80px 24px">
+  <div class="ctr" style="max-width:720px">
+    <div class="s-label fade-in" style="justify-content:center"><div class="s-label-line"></div><span class="s-label-text" style="color:var(--org)">DOCUMENT</span><div class="s-label-line"></div></div>
+    <h2 class="s-title s-title-c fade-in" style="color:var(--white)">協賛募集チラシ</h2>
+    <p style="text-align:center;color:var(--sub);font-size:14px;margin-bottom:32px" class="fade-in">詳細はチラシをご覧ください。PDFでダウンロードもできます。</p>
+    <!-- PDF埋め込み（モバイルはiframe代替） -->
+    <div class="fade-in" style="border-radius:16px;overflow:hidden;box-shadow:0 8px 40px rgba(46,125,50,.18);border:1px solid rgba(46,125,50,.15)">
+      <object data="photos/sponsor_flyer.pdf" type="application/pdf" width="100%" height="720" style="display:block">
+        <!-- PDF非対応ブラウザ用フォールバック -->
+        <iframe src="photos/sponsor_flyer.pdf" width="100%" height="720" style="border:none;display:block">
+          <p style="padding:24px;text-align:center">このブラウザではPDFを表示できません。</p>
+        </iframe>
+      </object>
+    </div>
+    <div style="text-align:center;margin-top:24px" class="fade-in">
+      <a href="photos/sponsor_flyer.pdf" download="カオスやストリート2027_協賛募集チラシ.pdf" class="btn btn-p" style="display:inline-flex;align-items:center;gap:8px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        PDFダウンロード
+      </a>
+    </div>
+  </div>
+</section>
+
 <!-- ===== FAQ ===== -->
 <section id="faq">
   <div class="ctr">
