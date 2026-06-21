@@ -100,10 +100,16 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--dark);color:var(--wh
 .hd-btn{background:linear-gradient(135deg,var(--org),var(--org-d));color:#fff;border:none;padding:10px 24px;border-radius:50px;font-size:13px;font-weight:700;cursor:pointer;transition:.3s;font-family:'Noto Sans JP',sans-serif;text-decoration:none}
 .hd-btn:hover{transform:translateY(-2px);box-shadow:0 4px 20px rgba(255,107,53,.5)}
 @media(max-width:768px){#hd{padding:14px 20px}.hd-nav{display:none}.hd-logo{height:36px}}
+/* スマホ: 動画ブラーを非表示、hero.png背景を確実に見せる */
+@media(max-width:768px){
+  #hero-video-blur{display:none}
+  #hero-video{opacity:.7}
+  #hero-video-overlay{background:linear-gradient(rgba(0,20,10,.35) 0%,rgba(0,30,15,.55) 55%,rgba(0,20,10,.85) 100%)}
+}
 @media(max-width:768px){#hd.scrolled{padding:10px 20px}}
 
 /* ===== HERO ===== */
-#hero{min-height:100svh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:100px 24px 60px;position:relative;overflow:hidden;background:var(--dark)}
+#hero{min-height:100svh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:100px 24px 60px;position:relative;overflow:hidden;background:url('photos/hero.png') center top/cover no-repeat}
 #hero-video-blur{position:absolute;inset:-40px;width:calc(100% + 80px);height:calc(100% + 80px);object-fit:cover;z-index:0;opacity:.35;filter:blur(18px) brightness(.5);transform:scale(1.1)}
 #hero-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center top;z-index:1;opacity:.85}
 #hero-video-overlay{position:absolute;inset:0;background:linear-gradient(rgba(13,13,26,.15) 0%,rgba(13,13,26,.45) 65%,rgba(13,13,26,.88) 100%);z-index:2}
@@ -857,23 +863,23 @@ footer a:hover{text-decoration:underline}
 
 <!-- ===== FLYER ===== -->
 <section id="flyer" style="background:linear-gradient(135deg,#E8F5E9,#F7FFF2);padding:80px 24px">
-  <div class="ctr" style="max-width:720px">
+  <div class="ctr" style="max-width:720px;text-align:center">
     <div class="s-label fade-in" style="justify-content:center"><div class="s-label-line"></div><span class="s-label-text" style="color:var(--org)">DOCUMENT</span><div class="s-label-line"></div></div>
     <h2 class="s-title s-title-c fade-in" style="color:var(--white)">協賛募集チラシ</h2>
-    <p style="text-align:center;color:var(--sub);font-size:14px;margin-bottom:32px" class="fade-in">詳細はチラシをご覧ください。PDFでダウンロードもできます。</p>
-    <!-- PDF埋め込み（モバイルはiframe代替） -->
-    <div class="fade-in" style="border-radius:16px;overflow:hidden;box-shadow:0 8px 40px rgba(46,125,50,.18);border:1px solid rgba(46,125,50,.15)">
-      <object data="photos/sponsor_flyer.pdf" type="application/pdf" width="100%" height="720" style="display:block">
-        <!-- PDF非対応ブラウザ用フォールバック -->
-        <iframe src="photos/sponsor_flyer.pdf" width="100%" height="720" style="border:none;display:block">
-          <p style="padding:24px;text-align:center">このブラウザではPDFを表示できません。</p>
-        </iframe>
-      </object>
-    </div>
-    <div style="text-align:center;margin-top:24px" class="fade-in">
-      <a href="photos/sponsor_flyer.pdf" download="カオスやストリート2027_協賛募集チラシ.pdf" class="btn btn-p" style="display:inline-flex;align-items:center;gap:8px">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        PDFダウンロード
+    <p style="color:var(--sub);font-size:14px;margin-bottom:36px;line-height:1.8" class="fade-in">
+      A4サイズの協賛募集チラシをご用意しています。<br>
+      印刷してお渡しいただくことも可能です。
+    </p>
+    <div class="fade-in" style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap">
+      <a href="https://yamanishishinsuke19840623.github.io/kaosuya-street-2027/chirashi.html"
+         target="_blank" rel="noopener"
+         class="btn btn-p" style="display:inline-flex;align-items:center;gap:8px;font-size:14px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        チラシを開く・印刷する
+      </a>
+      <a href="#contact" class="btn btn-o" style="display:inline-flex;align-items:center;gap:8px;font-size:14px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        協賛を申し込む
       </a>
     </div>
   </div>
