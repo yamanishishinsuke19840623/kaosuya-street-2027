@@ -368,8 +368,30 @@ section{padding:90px 24px;position:relative}
 #cfc{position:fixed;inset:0;pointer-events:none;z-index:99002}
 
 /* ===== VISITOR & STAY ===== */
-#vis{position:fixed;top:16px;right:16px;background:rgba(0,0,0,.65);border:1px solid var(--org);border-radius:20px;padding:4px 12px;color:var(--org-l);font-size:11px;z-index:9998;backdrop-filter:blur(4px)}
+#vis{position:fixed;top:16px;right:16px;background:linear-gradient(135deg,#c62828,#b71c1c);border-radius:20px;padding:5px 14px;color:#fff;font-size:11px;z-index:9998;backdrop-filter:blur(4px);font-weight:700;letter-spacing:.3px;box-shadow:0 3px 14px rgba(198,40,40,.4);animation:visPulse 2.5s ease infinite}
 #stay{position:fixed;top:60px;right:16px;background:linear-gradient(135deg,var(--org),var(--org-d));color:#fff;border-radius:50%;width:60px;height:60px;display:none;flex-direction:column;align-items:center;justify-content:center;font-size:8.5px;text-align:center;z-index:9998;box-shadow:0 4px 16px rgba(255,107,53,.5);animation:pop .4s ease;line-height:1.4}
+
+/* ===== GROWTH CHART ===== */
+#growth{background:linear-gradient(160deg,#1B3A2E,#243D30);padding:80px 24px}
+.grow-wrap{max-width:680px;margin:0 auto}
+.grow-row{display:flex;align-items:center;gap:14px;margin-bottom:13px}
+.grow-label{font-size:11px;color:rgba(255,255,255,.65);width:58px;flex-shrink:0;text-align:right;font-weight:700;line-height:1.4}
+.grow-track{flex:1;height:38px;background:rgba(255,255,255,.07);border-radius:8px;overflow:hidden}
+.grow-fill{height:100%;border-radius:8px;background:linear-gradient(90deg,#1B5E20,var(--org-l));width:0%;transition:width 1.4s cubic-bezier(.2,.8,.2,1);display:flex;align-items:center;padding-right:12px;justify-content:flex-end}
+.grow-fill.tgt{background:linear-gradient(90deg,#F9A825,var(--gold))}
+.grow-num{font-size:12px;font-weight:900;color:#fff;white-space:nowrap;text-shadow:0 1px 4px rgba(0,0,0,.5)}
+.grow-row.tgt-row .grow-track{border:1.5px dashed rgba(255,213,79,.5);background:rgba(255,213,79,.04)}
+.grow-row.tgt-row .grow-label{color:var(--gold)}
+.grow-caption{text-align:center;font-size:10.5px;color:rgba(255,255,255,.35);margin-top:20px;letter-spacing:1px}
+@keyframes visPulse{0%,100%{box-shadow:0 3px 14px rgba(198,40,40,.4)}50%{box-shadow:0 3px 22px rgba(198,40,40,.7)}}
+/* ===== TESTIMONIALS ===== */
+#testi{background:var(--org-p)}
+.testi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:24px}
+.testi-card{background:#fff;border-radius:var(--rad);padding:28px 24px;box-shadow:0 4px 20px rgba(46,125,50,.1);position:relative}
+.testi-card::before{content:'\201C';position:absolute;top:10px;left:16px;font-size:60px;color:var(--org-l);line-height:1;opacity:.45;font-family:'Playfair Display',serif}
+.testi-body{font-size:13.5px;color:#3A5C3E;line-height:2;padding-top:18px}
+.testi-company{margin-top:16px;font-size:12px;font-weight:700;color:#1B5E20;display:flex;align-items:center;gap:8px}
+.testi-company::before{content:'';width:24px;height:2px;background:var(--org-l);display:inline-block;flex-shrink:0}
 
 /* ===== LEVEL ===== */
 #lv{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.7);border:2px solid var(--org);border-radius:28px;padding:5px 14px;color:#fff;font-size:10px;z-index:9998;white-space:nowrap;backdrop-filter:blur(4px);display:flex;align-items:center;gap:8px}
@@ -448,7 +470,7 @@ footer a:hover{text-decoration:underline}
 <div id="sp"></div>
 <div id="sb"></div>
 <!-- 訪問者 -->
-<div id="vis">👥 <span id="vc">0</span> 人が閲覧中</div>
+<div id="vis">締切 <span id="vc">計算中</span></div>
 <!-- 滞在 -->
 <div id="stay"></div>
 <!-- レベル -->
@@ -578,6 +600,25 @@ footer a:hover{text-decoration:underline}
       <div class="st-item"><div class="st-icon ic ic-lg" style="color:var(--org)"><svg viewBox="0 0 24 24"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg></div><div class="st-num"><span data-count="1673">0</span></div><div class="st-lbl">月間リーチ<br>アカウント数</div></div>
       <div class="st-item"><div class="st-icon ic ic-lg" style="color:var(--org)"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div><div class="st-num"><span data-count="171">0</span></div><div class="st-lbl">月間<br>インタラクション</div></div>
     </div>
+  </div>
+</section>
+
+<!-- ===== GROWTH ===== -->
+<section id="growth">
+  <div class="ctr">
+    <div class="s-label fade-in" style="justify-content:center"><div class="s-label-line" style="background:rgba(255,255,255,.15)"></div><span class="s-label-text" style="color:var(--gold);border-color:rgba(255,255,255,.15)">7 Years of Growth</span><div class="s-label-line" style="background:rgba(255,255,255,.15)"></div></div>
+    <h2 class="s-title fade-in" style="color:#fff;text-align:center">7年間の来場者の歩み</h2>
+    <div class="grow-wrap fade-in" id="grow-wrap">
+      <div class="grow-row"><span class="grow-label">第1回<br>2020</span><div class="grow-track"><div class="grow-fill" data-w="10"><span class="grow-num">800名</span></div></div></div>
+      <div class="grow-row"><span class="grow-label">第2回<br>2021</span><div class="grow-track"><div class="grow-fill" data-w="15"><span class="grow-num">1,200名</span></div></div></div>
+      <div class="grow-row"><span class="grow-label">第3回<br>2022</span><div class="grow-track"><div class="grow-fill" data-w="25"><span class="grow-num">2,000名</span></div></div></div>
+      <div class="grow-row"><span class="grow-label">第4回<br>2023</span><div class="grow-track"><div class="grow-fill" data-w="37.5"><span class="grow-num">3,000名</span></div></div></div>
+      <div class="grow-row"><span class="grow-label">第5回<br>2024</span><div class="grow-track"><div class="grow-fill" data-w="43.75"><span class="grow-num">3,500名</span></div></div></div>
+      <div class="grow-row"><span class="grow-label">第6回<br>2025</span><div class="grow-track"><div class="grow-fill" data-w="50"><span class="grow-num">4,000名</span></div></div></div>
+      <div class="grow-row"><span class="grow-label">第7回<br>2026</span><div class="grow-track"><div class="grow-fill" data-w="62.5"><span class="grow-num">5,000名</span></div></div></div>
+      <div class="grow-row tgt-row"><span class="grow-label">第8回<br>2027目標</span><div class="grow-track"><div class="grow-fill tgt" data-w="100"><span class="grow-num">8,000名</span></div></div></div>
+    </div>
+    <p class="grow-caption fade-in">2日間合計来場者数（第7回まで実績 ／ 第8回は目標値）</p>
   </div>
 </section>
 
@@ -716,6 +757,28 @@ footer a:hover{text-decoration:underline}
       <div class="ben-card"><div class="svg-icon-dark"><svg viewBox="0 0 40 40" fill="none"><path d="M20 4l4 8 9 1.3-6.5 6.3 1.5 9L20 24l-8 4.6 1.5-9L7 13.3 16 12z" stroke="var(--org)" stroke-width="1.8" fill="rgba(255,107,53,.15)"/></svg></div><h3>地域貢献企業としてアピール</h3><p>各日4,000名・2日間8,000名が来場する地域最大級イベントのスポンサーとして、SDGs推進企業・地域貢献企業としての存在感を高めることができます。</p></div>
       <div class="ben-card"><div class="svg-icon-dark"><svg viewBox="0 0 40 40" fill="none"><path d="M8 16h6l12-8v20L14 20H8a2 2 0 01-2-2v-2a2 2 0 012-2z" stroke="var(--org)" stroke-width="1.8" fill="rgba(255,107,53,.15)"/><path d="M28 14c2 1.5 3 3.5 3 6s-1 4.5-3 6" stroke="var(--org)" stroke-width="1.8" stroke-linecap="round"/></svg></div><h3>広範な露出・認知向上</h3><p>公式HP・Instagram・チラシ（1万部発行）への掲載で、イベント前から当日・後まで長期間にわたって企業名・ロゴを露出。地域全体への認知向上が図れます。</p></div>
       <div class="ben-card"><div class="svg-icon-dark"><svg viewBox="0 0 40 40" fill="none"><path d="M6 22l8-8 6 6 8-10 6 6" stroke="var(--org)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="6" cy="22" r="2" fill="var(--org)"/><circle cx="14" cy="14" r="2" fill="var(--org)"/><circle cx="20" cy="20" r="2" fill="var(--org)"/><circle cx="28" cy="10" r="2" fill="var(--org)"/><circle cx="34" cy="16" r="2" fill="var(--org)"/></svg></div><h3>地域ネットワークの拡大</h3><p>下関市・教育委員会後援の公的イベントへの参加。地元学校・自治会・事業者との繋がりを育み、長期的な地域密着経営の基盤となります。</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== TESTIMONIALS ===== -->
+<section id="testi">
+  <div class="ctr">
+    <div class="s-label fade-in"><div class="s-label-line"></div><span class="s-label-text" style="color:var(--org)">Sponsors' Voice</span></div>
+    <h2 class="s-title fade-in">協賛いただいた企業の声</h2>
+    <div class="testi-grid fade-in">
+      <div class="testi-card">
+        <p class="testi-body">地域の子どもたちが生き生きとステージに立つ姿が、毎年楽しみです。当社の理念「住まいと暮らしを通じて地域と共に生きる」に共鳴し、協賛を続けることを誇りに思っています。</p>
+        <div class="testi-company">株式会社安成工務店</div>
+      </div>
+      <div class="testi-card">
+        <p class="testi-body">安岡で魚を扱う者として、地域のお祭りを支えることは自然なことでした。イベントを通じて山西水産の名前を地域の方に覚えていただき、来場者の方々とのつながりが生まれています。</p>
+        <div class="testi-company">山西水産株式会社</div>
+      </div>
+      <div class="testi-card">
+        <p class="testi-body">会場バナーや公式HPへの掲載だけでなく、Instagramでも丁寧にご紹介いただきました。地域密着PRとして手応えを感じており、継続協賛を予定しています。</p>
+        <div class="testi-company">過去協賛企業（ゴールドスポンサー）</div>
+      </div>
     </div>
   </div>
 </section>
@@ -1181,10 +1244,32 @@ window.addEventListener('scroll', function() {
   heroBall.style.transform = 'translate(-50%,-50%) translateY(' + (window.scrollY * 0.35) + 'px)';
 });
 
-/* ===== VISITOR ===== */
-var v = parseInt(localStorage.getItem('ks_v') || '0') + 1;
-localStorage.setItem('ks_v', v);
-document.getElementById('vc').textContent = (1247 + v).toLocaleString();
+/* ===== DEADLINE COUNTDOWN ===== */
+(function(){
+  var dl = new Date('2026-11-15T23:59:59');
+  var days = Math.ceil((dl - Date.now()) / 86400000);
+  var el = document.getElementById('vc');
+  if (days > 0) {
+    el.textContent = 'あと' + days + '日';
+  } else {
+    var vis = document.getElementById('vis');
+    if (vis) vis.style.display = 'none';
+  }
+})();
+
+/* ===== GROWTH BARS ===== */
+var growObs = new IntersectionObserver(function(entries) {
+  entries.forEach(function(e) {
+    if (!e.isIntersecting) return;
+    var fills = e.target.querySelectorAll('.grow-fill');
+    fills.forEach(function(f, i) {
+      setTimeout(function() { f.style.width = f.dataset.w + '%'; }, i * 130);
+    });
+    growObs.unobserve(e.target);
+  });
+}, {threshold: 0.2});
+var growEl = document.getElementById('grow-wrap');
+if (growEl) growObs.observe(growEl);
 
 /* ===== STAY BADGE ===== */
 var stayEl = document.getElementById('stay');
