@@ -393,6 +393,17 @@ section{padding:90px 24px;position:relative}
 .testi-company{margin-top:16px;font-size:12px;font-weight:700;color:#1B5E20;display:flex;align-items:center;gap:8px}
 .testi-company::before{content:'';width:24px;height:2px;background:var(--org-l);display:inline-block;flex-shrink:0}
 
+/* ===== SPONSOR LIST (GAS動的表示) ===== */
+#sp-list{background:linear-gradient(135deg,#E8F5E9,#F7FFF2);padding:70px 24px}
+.sp-list-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;max-width:880px;margin:0 auto}
+.sp-name-card{background:#fff;border-radius:14px;padding:20px 18px;box-shadow:0 3px 16px rgba(46,125,50,.1);text-align:center;border-top:4px solid var(--org-l)}
+.sp-name-card.pt-card{border-top-color:var(--gold)}
+.sp-badge-pt{display:inline-block;background:linear-gradient(135deg,#FFD54F,#F0C040);color:#1A3C1C;font-size:9px;font-weight:900;letter-spacing:1.5px;padding:3px 10px;border-radius:20px;margin-bottom:8px}
+.sp-badge-gd{display:inline-block;background:linear-gradient(135deg,var(--org),var(--org-d));color:#fff;font-size:9px;font-weight:900;letter-spacing:1.5px;padding:3px 10px;border-radius:20px;margin-bottom:8px}
+.sp-company{font-size:15px;font-weight:900;color:#1B5E20;margin-bottom:6px}
+.sp-msg{font-size:11.5px;color:#4A7041;line-height:1.7;margin-top:6px;border-top:1px solid #C8E6C9;padding-top:8px}
+.sp-empty{text-align:center;padding:40px;color:#81C784;font-size:13px}
+
 /* ===== LEVEL ===== */
 #lv{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.7);border:2px solid var(--org);border-radius:28px;padding:5px 14px;color:#fff;font-size:10px;z-index:9998;white-space:nowrap;backdrop-filter:blur(4px);display:flex;align-items:center;gap:8px}
 #lv-bar{width:72px;height:5px;background:rgba(255,255,255,.15);border-radius:3px;overflow:hidden}
@@ -860,6 +871,17 @@ footer a:hover{text-decoration:underline}
   </div>
 </section>
 
+<!-- ===== SPONSOR LIST ===== -->
+<section id="sp-list" style="display:none">
+  <div class="ctr">
+    <div class="s-label fade-in"><div class="s-label-line"></div><span class="s-label-text" style="color:var(--org)">Our Sponsors</span></div>
+    <h2 class="s-title fade-in">ご協賛企業一覧</h2>
+    <div id="sp-list-inner" class="fade-in">
+      <div class="sp-empty">協賛企業を読み込み中...</div>
+    </div>
+  </div>
+</section>
+
 <!-- ===== ROI計算機 ===== -->
 <section id="roi">
   <div class="ctr roi-wrap">
@@ -1055,7 +1077,8 @@ footer a:hover{text-decoration:underline}
             <option value="1">1口</option><option value="2">2口</option><option value="3">3口以上</option>
           </select>
         </div>
-        <div class="fg"><label>備考・メッセージ</label><textarea name="message" placeholder="ご質問・ご要望など"></textarea></div>
+        <div class="fg"><label>HP・チラシへの掲載名（省略可）</label><input type="text" name="displayName" placeholder="例：山西水産株式会社（省略時は法人名を使用）"></div>
+        <div class="fg"><label>応援メッセージ（HP掲載可）</label><textarea name="message" placeholder="掲載OKの場合は協賛ページに表示されます"></textarea></div>
         <button type="submit" class="btn btn-p" style="width:100%">申し込む</button>
       </form>
       <div class="share-sec">
@@ -1433,18 +1456,16 @@ function endG(ok) {
 })();
 
 /* ===== SLOTS ===== */
-function renderSlots(id, max, tk) {
+function renderSlots(id, max, used) {
   var el = document.getElementById(id);
+  if (!el) return;
   var h = '';
-  for (var i = 0; i < max; i++) h += '<div class="pip' + (i < tk ? ' tk' : '') + '"></div>';
+  for (var i = 0; i < max; i++) h += '<div class="pip' + (i < used ? ' tk' : '') + '"></div>';
   el.innerHTML = h;
 }
-var ptk = parseInt(localStorage.getItem('ks_pt') || '0');
-var gtk = parseInt(localStorage.getItem('ks_gt') || '0');
-if (!ptk && Math.random() < .5) { ptk = 1; localStorage.setItem('ks_pt','1'); }
-if (!gtk && Math.random() < .7) { gtk = Math.floor(Math.random()*3)+1; localStorage.setItem('ks_gt',String(gtk)); }
-renderSlots('pt-slots', 3, ptk);
-renderSlots('gd-slots', 10, gtk);
+// GAS未設定時のデフォルト（空き）
+renderSlots('pt-slots', 3, 0);
+renderSlots('gd-slots', 10, 0);
 
 /* ===== FAQ ===== */
 function tFaq(el) { el.parentElement.classList.toggle('open'); }
@@ -1474,12 +1495,34 @@ function postCheer() {
 renderCheers();
 
 /* ===== FORM ===== */
-var ENDPOINT = 'https://formspree.io/f/maqzaoyo';
+var GAS_ENDPOINT = '';  // ← GASデプロイ後にURLを設定
+var FORMSPREE    = 'https://formspree.io/f/maqzaoyo';  // フォールバック
+
 function sbmForm(e) {
   e.preventDefault();
   var f = e.target;
-  if (ENDPOINT) {
-    fetch(ENDPOINT,{method:'POST',body:new FormData(f),headers:{Accept:'application/json'}})
+  var data = {
+    company:     f.company.value,
+    name:        f.name.value,
+    email:       f.email.value,
+    tel:         f.tel ? f.tel.value : '',
+    plan:        f.plan.value,
+    count:       f.count ? f.count.value : '1',
+    displayName: f.displayName ? f.displayName.value : '',
+    message:     f.message ? f.message.value : ''
+  };
+
+  if (GAS_ENDPOINT) {
+    // GAS送信（no-cors → 楽観的成功表示）
+    fetch(GAS_ENDPOINT, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    }).catch(function() {});
+    thx();
+  } else if (FORMSPREE) {
+    fetch(FORMSPREE,{method:'POST',body:new FormData(f),headers:{Accept:'application/json'}})
       .then(function(r){if(r.ok)thx();else fbMail(f);}).catch(function(){fbMail(f);});
   } else { fbMail(f); }
 }
@@ -1504,6 +1547,41 @@ function sTH(){window.open('https://www.threads.net/intent/post?text='+encodeURI
 
 /* ===== QR ===== */
 try{new QRCode(document.getElementById('qr-wrap'),{text:surl,width:110,height:110,colorDark:'#0D0D1A',colorLight:'#FFFFFF',correctLevel:QRCode.CorrectLevel.M});}catch(e){}
+
+/* ===== GAS JSONP: 協賛企業一覧 + 残枠読み込み ===== */
+function ksCallback(d) {
+  // 残枠を実データで更新
+  if (d.slots) {
+    renderSlots('pt-slots', d.slots.pt.total, d.slots.pt.used);
+    renderSlots('gd-slots', d.slots.gd.total, d.slots.gd.used);
+  }
+  // 協賛企業一覧
+  var listEl = document.getElementById('sp-list');
+  var inner  = document.getElementById('sp-list-inner');
+  if (!d.sponsors || d.sponsors.length === 0) {
+    if (listEl) listEl.style.display = 'none';
+    return;
+  }
+  var html = '<div class="sp-list-grid">';
+  d.sponsors.forEach(function(s) {
+    var isPt = (s.plan === 'プラチナ');
+    html += '<div class="sp-name-card' + (isPt ? ' pt-card' : '') + '">';
+    html += '<div class="' + (isPt ? 'sp-badge-pt' : 'sp-badge-gd') + '">' + (isPt ? 'PLATINUM' : 'GOLD') + '</div>';
+    html += '<div class="sp-company">' + s.name + '</div>';
+    if (s.message) html += '<div class="sp-msg">' + s.message + '</div>';
+    html += '</div>';
+  });
+  html += '</div>';
+  inner.innerHTML = html;
+  if (listEl) listEl.style.display = '';
+}
+// GAS設定済みの場合にJSONP読み込み
+if (GAS_ENDPOINT) {
+  var sc = document.createElement('script');
+  sc.src = GAS_ENDPOINT + '?callback=ksCallback';
+  sc.onerror = function() { document.getElementById('sp-list').style.display = 'none'; };
+  document.head.appendChild(sc);
+}
 
 /* ===== BADGE ===== */
 function openBM(){document.getElementById('bm').classList.add('open');drawBadge();}
