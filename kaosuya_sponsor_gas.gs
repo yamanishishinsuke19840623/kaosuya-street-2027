@@ -6,21 +6,126 @@ var ADMIN_EMAIL = 'yamanishishinsuke19840623@gmail.com';
 var EVENT_NAME  = 'カオスやストリート MUSIC FESTIVAL 2027';
 var LP_URL      = 'https://yamanishishinsuke19840623.github.io/kaosuya-street-2027/';
 
-// ===== doPost: フォーム申し込み受信 =====
+// Stripe Payment Link ID → プラン対応表
+var STRIPE_LINKS = {
+  'https://buy.stripe.com/14AeV67EQg7UdrT8rFao804': 'プラチナ',
+  'https://buy.stripe.com/eVqbIU0codZM9bDdLZao805': 'ゴールド'
+};
+
+// ===== doPost: フォーム申し込み / Stripe Webhook 振り分け =====
 function doPost(e) {
   try {
-    var data = JSON.parse(e.postData.contents);
+    var raw  = e.postData.contents;
+    var data = JSON.parse(raw);
+
+    // Stripe Webhook の検出（type フィールドがある）
+    if (data.type && data.data && data.data.object) {
+      handleStripeWebhook(data);
+      return ContentService
+        .createTextOutput(JSON.stringify({ received: true }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
+    // 通常のフォーム申し込み
     logToSheet(data);
     sendAutoReplyToApplicant(data);
     sendNotificationToAdmin(data);
     return ContentService
       .createTextOutput(JSON.stringify({ status: 'ok' }))
       .setMimeType(ContentService.MimeType.JSON);
+
   } catch (err) {
     Logger.log('doPost error: ' + err);
     return ContentService
       .createTextOutput(JSON.stringify({ status: 'error', msg: err.toString() }))
       .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+// ===== Stripe Webhook ハンドラ =====
+function handleStripeWebhook(event) {
+  if (event.type !== 'checkout.session.completed') return;
+
+  var session = event.data.object;
+  var amount  = session.amount_total || 0;  // JPY はゼロ小数点（そのまま円）
+
+  // 金額でプランを判定
+  var plan      = amount >= 33000 ? 'プラチナ' : 'ゴールド';
+  var unitPrice = plan === 'プラチナ' ? 33000 : 11000;
+
+  var details = session.customer_details || {};
+  var email   = details.email || session.customer_email || '';
+  var name    = details.name  || '';
+
+  // 台帳に記録（クレカ決済なので振込確認は即「確認済」）
+  var ss    = SpreadsheetApp.openById(SHEET_ID);
+  var sheet = ss.getSheetByName('台帳') || ss.getSheets()[0];
+  sheet.appendRow([
+    new Date(),
+    name,
+    name,
+    email,
+    '',
+    plan,
+    1,
+    unitPrice,
+    name,
+    '',
+    'Stripe決済完了　' + (session.id || ''),
+    '確認済',
+    'いいえ',
+    '',
+    '',
+    ''
+  ]);
+
+  // 管理者へ通知
+  var planLabel = plan + 'スポンサー（¥' + unitPrice.toLocaleString() + '）';
+  MailApp.sendEmail({
+    to:      ADMIN_EMAIL,
+    subject: '【Stripe決済完了】' + name + '　' + planLabel,
+    body: [
+      'Stripeでの協賛申し込み（クレジットカード決済）が完了しました。',
+      '',
+      '名前    ：' + name,
+      'メール  ：' + email,
+      'プラン  ：' + planLabel,
+      'Session ：' + (session.id || ''),
+      '',
+      '■ 次の作業',
+      '振込確認は「確認済」として自動記録済みです。',
+      'M列「LP掲載」を「はい」に変更するとLP協賛一覧に自動反映されます。',
+      '',
+      '台帳：https://docs.google.com/spreadsheets/d/' + SHEET_ID
+    ].join('\n')
+  });
+
+  // 申込者へ自動返信
+  if (email) {
+    MailApp.sendEmail({
+      to:      email,
+      subject: '【' + EVENT_NAME + '】ご協賛ありがとうございます（カード決済完了）',
+      body: [
+        name + ' 様',
+        '',
+        'カオスやストリート MUSIC FESTIVAL 2027への',
+        'クレジットカードでのご協賛が完了いたしました。',
+        '',
+        '■ お申し込み内容',
+        'プラン ：' + planLabel,
+        '',
+        '今後の流れ：',
+        '・公式HP・SNSへの掲載を順次進めます',
+        '・チラシ（2026年12月発行予定）への掲載',
+        '',
+        '改めて担当（山西）よりご連絡いたします。',
+        '',
+        '---',
+        EVENT_NAME + ' 実行委員会',
+        '担当：山西伸典　TEL：070-5483-0623',
+        'MAIL：' + ADMIN_EMAIL
+      ].join('\n')
+    });
   }
 }
 

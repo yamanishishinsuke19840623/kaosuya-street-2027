@@ -273,6 +273,16 @@ section{padding:90px 24px;position:relative}
 .ben-card h3{font-size:15px;font-weight:700;color:#1B5E20;margin-bottom:8px}
 .ben-card p{font-size:13px;color:#4A6741;line-height:1.8}
 
+/* ===== STRIPE BUTTON ===== */
+.btn-stripe{background:linear-gradient(135deg,#635BFF,#4F46E5);color:#fff!important;border:none;display:flex;align-items:center;justify-content:center;gap:8px;font-weight:900;letter-spacing:.5px;width:100%;padding:13px;border-radius:50px;font-size:14px;text-decoration:none;cursor:pointer;transition:.3s;font-family:'Noto Sans JP',sans-serif}
+.btn-stripe:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(99,91,255,.5)}
+.btn-stripe svg{width:16px;height:16px;fill:#fff;flex-shrink:0}
+.pay-divider{font-size:10px;color:rgba(255,255,255,.35);text-align:center;margin:10px 0;letter-spacing:2px;position:relative}
+.pay-divider::before,.pay-divider::after{content:'';position:absolute;top:50%;width:35%;height:1px;background:rgba(255,255,255,.12)}
+.pay-divider::before{left:0}.pay-divider::after{right:0}
+.btn-bank{background:transparent;border:1px solid rgba(255,255,255,.25);color:rgba(255,255,255,.65)!important;font-size:12px;padding:10px;width:100%;border-radius:50px;text-align:center;text-decoration:none;display:block;transition:.25s;font-family:'Noto Sans JP',sans-serif}
+.btn-bank:hover{background:rgba(255,255,255,.08);color:#fff!important}
+
 /* ===== PLANS ===== */
 #plans{background:linear-gradient(rgba(247,255,242,.80),rgba(255,255,255,.84)),url('photos/gallery6.jpg') center/cover no-repeat}
 .plans-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:28px;max-width:700px;margin:0 auto}
@@ -813,7 +823,12 @@ footer a:hover{text-decoration:underline}
           <li>チラシ掲載・ロゴ大（1万部発行）</li>
           <li>会場バナー・のぼりへの掲示</li>
         </ul>
-        <a href="#contact" class="btn btn-p" style="width:100%;display:block;text-align:center">申し込む</a>
+        <a href="https://buy.stripe.com/14AeV67EQg7UdrT8rFao804" target="_blank" rel="noopener" class="btn-stripe">
+          <svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10" stroke="#fff" stroke-width="1.5" fill="none"/></svg>
+          クレカで今すぐ申し込む
+        </a>
+        <div class="pay-divider">または</div>
+        <a href="#contact" class="btn-bank">銀行振込で申し込む</a>
       </div>
       <div class="pc gd">
         <div class="pc-badge">GOLD SPONSOR</div>
@@ -827,11 +842,16 @@ footer a:hover{text-decoration:underline}
           <li>チラシ掲載・テキスト小（1万部）</li>
           <li>SNS協賛企業一覧に掲載</li>
         </ul>
-        <a href="#contact" class="btn btn-o" style="width:100%;display:block;text-align:center">申し込む</a>
+        <a href="https://buy.stripe.com/eVqbIU0codZM9bDdLZao805" target="_blank" rel="noopener" class="btn-stripe">
+          <svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10" stroke="#fff" stroke-width="1.5" fill="none"/></svg>
+          クレカで今すぐ申し込む
+        </a>
+        <div class="pay-divider">または</div>
+        <a href="#contact" class="btn-bank">銀行振込で申し込む</a>
       </div>
     </div>
     <p class="fade-in" style="text-align:center;margin-top:28px;color:var(--sub);font-size:12px">
-      ※協賛金の請求書はメール等でご連絡いたします｜応募締切：2026年11月15日
+      ※クレカ決済はStripe（安全なクレジットカード決済）｜銀行振込はフォームよりお申し込みください｜応募締切：2026年11月15日
     </p>
     <div style="text-align:center;margin-top:22px" class="fade-in">
       <button class="btn btn-o" onclick="openBM()" style="color:var(--org)">協賛サポーターバッジを作る</button>
