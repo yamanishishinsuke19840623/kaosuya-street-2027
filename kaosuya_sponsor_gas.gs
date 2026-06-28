@@ -8,7 +8,7 @@
 //   4. デプロイ → ウェブアプリ → 全員（アクセスを許可）
 //   5. デプロイURLをコピーしてindex.htmlの GAS_ENDPOINT に貼る
 
-var SHEET_ID   = 'YOUR_SHEET_ID_HERE';       // ← スプレッドシートのIDに置き換える
+var SHEET_ID   = '1t18wcFhyc1UV-Ix8XMdlmDWK0SL2S0awYR962j-e3w4';
 var ADMIN_EMAIL = 'yamanishishinsuke19840623@gmail.com';
 var EVENT_NAME  = 'カオスやストリート MUSIC FESTIVAL 2027';
 var LP_URL      = 'https://yamanishishinsuke19840623.github.io/kaosuya-street-2027/';
