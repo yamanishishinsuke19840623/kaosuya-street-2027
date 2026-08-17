@@ -129,8 +129,10 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--dark);color:var(--wh
 .h-place{color:rgba(255,255,255,.8);font-size:13px;margin-bottom:28px;text-shadow:0 1px 6px rgba(0,0,0,.5)}
 /* カウントダウン */
 .cd{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:28px;position:relative;z-index:1}
-.cd-box{background:rgba(255,255,255,.78);border:1px solid rgba(46,125,50,.25);border-radius:var(--rad);padding:10px 14px;min-width:66px;text-align:center;backdrop-filter:blur(6px);box-shadow:0 2px 8px rgba(46,125,50,.1)}
-.cd-num{display:block;font-size:clamp(20px,5vw,36px);font-weight:900;color:var(--org);line-height:1}
+.cd-box{background:rgba(255,255,255,.78);border:1px solid rgba(46,125,50,.25);border-radius:var(--rad);padding:10px 14px;min-width:66px;text-align:center;backdrop-filter:blur(6px);box-shadow:0 2px 8px rgba(46,125,50,.1);perspective:240px}
+.cd-num{display:block;font-size:clamp(20px,5vw,36px);font-weight:900;color:var(--org);line-height:1;transform-style:preserve-3d;backface-visibility:hidden}
+.cd-num.flip{animation:cdFlip .5s ease}
+@keyframes cdFlip{0%{transform:rotateX(0)}48%{transform:rotateX(-90deg)}52%{transform:rotateX(90deg)}100%{transform:rotateX(0)}}
 .cd-lbl{font-size:9px;color:var(--sub);letter-spacing:1px;margin-top:4px;display:block}
 /* バッジ */
 .h-badges{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-bottom:28px;position:relative;z-index:1}
@@ -302,6 +304,27 @@ section{padding:90px 24px;position:relative}
 .slot-lbl{font-size:10px;color:rgba(255,255,255,.6);margin-bottom:6px}
 .pc .btn-o{color:var(--org);width:100%;display:block;text-align:center}
 
+/* ===== PLAN CARD: マグネットホバー + グロー枠 ===== */
+.pc{--mx:50%;--my:50%}
+.pc::before{content:'';position:absolute;inset:-2px;border-radius:calc(var(--rad) + 2px);padding:2px;
+  background:radial-gradient(220px circle at var(--mx) var(--my), rgba(255,255,255,.95), transparent 62%);
+  -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
+  -webkit-mask-composite:xor;mask-composite:exclude;
+  opacity:0;transition:opacity .35s;pointer-events:none}
+.pc.pt::before{background:radial-gradient(220px circle at var(--mx) var(--my), rgba(255,213,79,.95), transparent 62%)}
+.pc.gd::before{background:radial-gradient(220px circle at var(--mx) var(--my), rgba(102,187,106,.95), transparent 62%)}
+.pc:hover::before{opacity:1}
+.pc{transition:transform .2s ease}
+
+/* ===== 残枠ゲージ ===== */
+.slot-gauge{margin:2px 0 16px}
+.slot-gauge-track{height:8px;background:rgba(255,255,255,.12);border-radius:4px;overflow:hidden}
+.slot-gauge-fill{height:100%;border-radius:4px;width:0%;transition:width 1s cubic-bezier(.2,.8,.2,1);background:linear-gradient(90deg,var(--gold),#F0C040)}
+.pc.gd .slot-gauge-fill{background:linear-gradient(90deg,var(--org-l),#A5D6A7)}
+.slot-gauge-fill.hot{background:linear-gradient(90deg,#FF5252,#D32F2F)!important;animation:gaugePulse 1.2s ease infinite}
+@keyframes gaugePulse{0%,100%{opacity:1}50%{opacity:.6}}
+.slot-gauge-txt{font-size:10px;color:rgba(255,255,255,.55);margin-top:6px;text-align:center;letter-spacing:.3px}
+
 /* ===== CHEER ===== */
 #cheer{background:linear-gradient(rgba(247,255,242,.80),rgba(255,255,255,.84)),url('photos/gallery3.jpg') center/cover no-repeat}
 #cheer .s-title{color:var(--white)}
@@ -409,6 +432,13 @@ section{padding:90px 24px;position:relative}
 .sp-company{font-size:15px;font-weight:900;color:#1B5E20;margin-bottom:6px}
 .sp-msg{font-size:11.5px;color:#4A7041;line-height:1.7;margin-top:6px;border-top:1px solid #C8E6C9;padding-top:8px}
 .sp-empty{text-align:center;padding:40px;color:#81C784;font-size:13px}
+
+/* ===== 協賛企業マーキー ===== */
+.sp-marquee-wrap{overflow:hidden;margin-bottom:28px;-webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)}
+.sp-marquee-track{display:flex;width:max-content;animation:spMarquee 24s linear infinite}
+.sp-marquee-item{display:flex;align-items:center;gap:8px;padding:8px 28px;font-size:14px;font-weight:900;color:#1B5E20;white-space:nowrap}
+.sp-marquee-item::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--gold);flex-shrink:0}
+@keyframes spMarquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 
 /* ===== LEVEL ===== */
 #lv{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.7);border:2px solid var(--org);border-radius:28px;padding:5px 14px;color:#fff;font-size:10px;z-index:9998;white-space:nowrap;backdrop-filter:blur(4px);display:flex;align-items:center;gap:8px}
@@ -809,6 +839,7 @@ footer a:hover{text-decoration:underline}
         <div class="pc-price">¥33,000<small>/1口（税込）</small></div>
         <div class="slot-lbl">残枠</div>
         <div class="slots" id="pt-slots"></div>
+        <div class="slot-gauge"><div class="slot-gauge-track"><div class="slot-gauge-fill" id="pt-gauge"></div></div><div class="slot-gauge-txt" id="pt-gauge-txt"></div></div>
         <ul class="pc-feats">
           <li>公式HPへの企業ロゴ掲載（大）</li>
           <li>Instagram協賛企業紹介（SNS）</li>
@@ -829,6 +860,7 @@ footer a:hover{text-decoration:underline}
         <div class="pc-price" style="color:var(--org-l)">¥11,000<small>/1口（税込）</small></div>
         <div class="slot-lbl">残枠</div>
         <div class="slots" id="gd-slots"></div>
+        <div class="slot-gauge"><div class="slot-gauge-track"><div class="slot-gauge-fill" id="gd-gauge"></div></div><div class="slot-gauge-txt" id="gd-gauge-txt"></div></div>
         <ul class="pc-feats">
           <li>公式HPへの企業名掲載（テキスト）</li>
           <li>チラシ掲載・テキスト小（1万部）</li>
@@ -888,6 +920,7 @@ footer a:hover{text-decoration:underline}
   <div class="ctr">
     <div class="s-label fade-in"><div class="s-label-line"></div><span class="s-label-text" style="color:var(--org)">Our Sponsors</span></div>
     <h2 class="s-title fade-in">ご協賛企業一覧</h2>
+    <div class="sp-marquee-wrap fade-in" id="sp-marquee-wrap" style="display:none"><div class="sp-marquee-track" id="sp-marquee-track"></div></div>
     <div id="sp-list-inner" class="fade-in">
       <div class="sp-empty">協賛企業を読み込み中...</div>
     </div>
@@ -1184,7 +1217,15 @@ function updLv(p) {
   document.getElementById('lv-text').textContent = lvs[Math.min(Math.floor(p * 5), 4)];
 }
 
-/* ===== COUNTDOWN ===== */
+/* ===== COUNTDOWN（フリップ演出付き） ===== */
+function setCdVal(id, val) {
+  var el = document.getElementById(id);
+  if (!el || el.textContent === val) return;
+  el.textContent = val;
+  el.classList.remove('flip');
+  void el.offsetWidth;
+  el.classList.add('flip');
+}
 function updCD() {
   var t = new Date('2027-03-13T10:00:00') - new Date();
   if (t < 0) t = 0;
@@ -1192,10 +1233,10 @@ function updCD() {
   var h = Math.floor((t % 86400000) / 3600000);
   var m = Math.floor((t % 3600000) / 60000);
   var s = Math.floor((t % 60000) / 1000);
-  document.getElementById('cd-d').textContent = d;
-  document.getElementById('cd-h').textContent = String(h).padStart(2,'0');
-  document.getElementById('cd-m').textContent = String(m).padStart(2,'0');
-  document.getElementById('cd-s').textContent = String(s).padStart(2,'0');
+  setCdVal('cd-d', String(d));
+  setCdVal('cd-h', String(h).padStart(2,'0'));
+  setCdVal('cd-m', String(m).padStart(2,'0'));
+  setCdVal('cd-s', String(s).padStart(2,'0'));
 }
 updCD(); setInterval(updCD, 1000);
 
@@ -1470,14 +1511,38 @@ function endG(ok) {
 /* ===== SLOTS ===== */
 function renderSlots(id, max, used) {
   var el = document.getElementById(id);
-  if (!el) return;
-  var h = '';
-  for (var i = 0; i < max; i++) h += '<div class="pip' + (i < used ? ' tk' : '') + '"></div>';
-  el.innerHTML = h;
+  if (el) {
+    var h = '';
+    for (var i = 0; i < max; i++) h += '<div class="pip' + (i < used ? ' tk' : '') + '"></div>';
+    el.innerHTML = h;
+  }
+  var gaugeId = id.replace('-slots', '-gauge');
+  var gauge = document.getElementById(gaugeId);
+  if (gauge) {
+    var pct = max > 0 ? Math.round(used / max * 100) : 0;
+    requestAnimationFrame(function() { gauge.style.width = pct + '%'; });
+    gauge.classList.toggle('hot', pct >= 70);
+    var txtEl = document.getElementById(gaugeId + '-txt');
+    if (txtEl) txtEl.textContent = Math.max(max - used, 0) + '/' + max + '枠 空きあり';
+  }
 }
 // GAS未設定時のデフォルト（空き）
 renderSlots('pt-slots', 3, 0);
 renderSlots('gd-slots', 10, 0);
+
+/* ===== PLAN CARD マグネットホバー ===== */
+document.querySelectorAll('.pc').forEach(function(card) {
+  card.addEventListener('mousemove', function(e) {
+    var r = card.getBoundingClientRect();
+    var x = e.clientX - r.left, y = e.clientY - r.top;
+    card.style.setProperty('--mx', x + 'px');
+    card.style.setProperty('--my', y + 'px');
+    var rx = (x / r.width - 0.5) * 8;
+    var ry = (y / r.height - 0.5) * -8;
+    card.style.transform = 'perspective(700px) rotateX(' + ry + 'deg) rotateY(' + rx + 'deg) translateY(-6px)';
+  });
+  card.addEventListener('mouseleave', function() { card.style.transform = ''; });
+});
 
 /* ===== FAQ ===== */
 function tFaq(el) { el.parentElement.classList.toggle('open'); }
@@ -1586,6 +1651,15 @@ function ksCallback(d) {
   html += '</div>';
   inner.innerHTML = html;
   if (listEl) listEl.style.display = '';
+  // 協賛企業マーキー
+  var mqWrap = document.getElementById('sp-marquee-wrap');
+  var mqTrack = document.getElementById('sp-marquee-track');
+  if (mqWrap && mqTrack) {
+    var names = d.sponsors.map(function(s) { return escH(s.name); });
+    var doubled = names.concat(names);
+    mqTrack.innerHTML = doubled.map(function(n) { return '<span class="sp-marquee-item">' + n + '</span>'; }).join('');
+    mqWrap.style.display = '';
+  }
 }
 // GAS設定済みの場合にJSONP読み込み
 if (GAS_ENDPOINT) {
