@@ -513,6 +513,29 @@ footer a:hover{text-decoration:underline}
 /* ===== 応援メッセージ新着バウンスイン ===== */
 @keyframes cmBounceIn{0%{opacity:0;transform:scale(.7) translateY(14px)}60%{opacity:1;transform:scale(1.04) translateY(-3px)}100%{opacity:1;transform:scale(1) translateY(0)}}
 .cm-new{animation:cmBounceIn .55s cubic-bezier(.34,1.56,.64,1)}
+
+/* ===== ヒーロー Ken Burns（常時ゆっくりズーム） ===== */
+@keyframes heroKenBurns1{0%{transform:scale(1)}100%{transform:scale(1.08)}}
+@keyframes heroKenBurns2{0%{transform:scale(1.1)}100%{transform:scale(1.22)}}
+#hero-video{animation:heroKenBurns1 24s ease-in-out infinite alternate}
+#hero-video-blur{animation:heroKenBurns2 24s ease-in-out infinite alternate}
+
+/* ===== スクロール進捗率(%)表示 ===== */
+#sp-pct{position:fixed;top:14px;left:16px;z-index:9999;background:rgba(0,0,0,.65);color:#fff;font-size:10px;font-weight:700;padding:3px 9px;border-radius:10px;pointer-events:none;letter-spacing:.5px}
+
+/* ===== ギャラリー：モノクロ→カラーホバー ===== */
+.gal-item img{filter:grayscale(85%) contrast(1.05);transition:transform .4s ease,filter .5s ease}
+.gal-item:hover img{filter:grayscale(0%) contrast(1)}
+
+/* ===== フォーム入力進捗インジケーター ===== */
+.form-progress{height:4px;background:rgba(255,255,255,.15);border-radius:2px;overflow:hidden;margin-bottom:8px}
+.form-progress-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--org),var(--gold));transition:width .3s ease}
+.form-progress-txt{font-size:10px;color:var(--sub);text-align:right;margin-bottom:8px;letter-spacing:.3px}
+
+/* ===== CTAボタン波紋リップル ===== */
+.btn-p,.btn-o,.btn-stripe{position:relative;overflow:hidden}
+.btn-ripple{position:absolute;border-radius:50%;background:rgba(255,255,255,.55);transform:scale(0);animation:btnRipple .6s ease-out forwards;pointer-events:none}
+@keyframes btnRipple{to{transform:scale(2.6);opacity:0}}
 </style>
 </head>
 <body>
@@ -541,6 +564,7 @@ footer a:hover{text-decoration:underline}
 <!-- スクロール -->
 <div id="sp"></div>
 <div id="sb"></div>
+<div id="sp-pct">0%</div>
 <!-- 訪問者 -->
 <div id="vis">締切 <span id="vc">計算中</span></div>
 <!-- 滞在 -->
@@ -1130,6 +1154,8 @@ footer a:hover{text-decoration:underline}
     <div class="s-label fade-in" style="justify-content:center"><div class="s-label-line"></div><span class="s-label-text">Apply Now</span><div class="s-label-line"></div></div>
     <h2 class="s-title s-title-c fade-in">協賛申込フォーム</h2>
     <div class="cf fade-in">
+      <div class="form-progress-txt" id="fp-txt">入力進捗 0%</div>
+      <div class="form-progress"><div class="form-progress-fill" id="fp-fill"></div></div>
       <form id="sf" onsubmit="sbmForm(event)">
         <div class="f-row">
           <div class="fg"><label>法人名・屋号 *</label><input type="text" name="company" required placeholder="例：株式会社◯◯"></div>
@@ -1232,10 +1258,12 @@ window.addEventListener('scroll', function() {
 /* ===== SCROLL PROGRESS ===== */
 var sp = document.getElementById('sp');
 var sb = document.getElementById('sb');
+var spPct = document.getElementById('sp-pct');
 window.addEventListener('scroll', function() {
   var pct = window.scrollY / (document.documentElement.scrollHeight - window.innerHeight);
   sp.style.width = (pct * 100) + '%';
   sb.style.left = (pct * (window.innerWidth - 12)) + 'px';
+  if (spPct) spPct.textContent = Math.round(pct * 100) + '%';
   updLv(pct);
 });
 
@@ -1834,6 +1862,41 @@ setInterval(spawnBubble, 800);
   }, { rootMargin: '-45% 0px -45% 0px', threshold: 0 });
   secs.forEach(function(s) { dotObs.observe(s); });
 })();
+
+/* ===== フォーム入力進捗インジケーター ===== */
+(function() {
+  var form = document.getElementById('sf');
+  var fill = document.getElementById('fp-fill');
+  var txt = document.getElementById('fp-txt');
+  if (!form || !fill) return;
+  var required = form.querySelectorAll('[required]');
+  function updateProg() {
+    var filled = 0;
+    required.forEach(function(f) { if (f.value && f.value.trim()) filled++; });
+    var pct = required.length ? Math.round(filled / required.length * 100) : 0;
+    fill.style.width = pct + '%';
+    txt.textContent = '入力進捗 ' + pct + '%';
+  }
+  required.forEach(function(f) {
+    f.addEventListener('input', updateProg);
+    f.addEventListener('change', updateProg);
+  });
+})();
+
+/* ===== CTAボタン波紋リップル ===== */
+document.querySelectorAll('.btn-p,.btn-o,.btn-stripe').forEach(function(btn) {
+  btn.addEventListener('click', function(e) {
+    var r = btn.getBoundingClientRect();
+    var size = Math.max(r.width, r.height);
+    var span = document.createElement('span');
+    span.className = 'btn-ripple';
+    span.style.width = span.style.height = size + 'px';
+    span.style.left = (e.clientX - r.left - size / 2) + 'px';
+    span.style.top = (e.clientY - r.top - size / 2) + 'px';
+    btn.appendChild(span);
+    setTimeout(function() { span.remove(); }, 650);
+  });
+});
 </script>
 </body>
 </html>
