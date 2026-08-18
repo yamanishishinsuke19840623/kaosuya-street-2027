@@ -494,6 +494,25 @@ footer a:hover{text-decoration:underline}
 .ig-thumb{aspect-ratio:1;background-size:cover;background-position:center}
 .ig-label{background:rgba(0,0,0,.7);color:var(--org-l);font-size:12px;font-weight:700;padding:8px 12px;text-align:center}
 @media(max-width:600px){.ig-card .ig-thumb ~ .ig-label{font-size:11px}}
+
+/* ===== サイドドットナビ ===== */
+.dot-nav{position:fixed;right:18px;top:50%;transform:translateY(-50%);z-index:997;display:flex;flex-direction:column;gap:14px}
+.dot-nav a{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.4);border:1px solid rgba(46,125,50,.4);display:block;position:relative;transition:all .3s}
+.dot-nav a.active{background:var(--gold);transform:scale(1.35);box-shadow:0 0 8px rgba(255,215,0,.65)}
+.dot-nav a::before{content:attr(data-label);position:absolute;right:18px;top:50%;transform:translateY(-50%);white-space:nowrap;font-size:10px;background:rgba(0,0,0,.75);color:#fff;padding:3px 9px;border-radius:4px;opacity:0;pointer-events:none;transition:opacity .25s}
+.dot-nav a:hover::before{opacity:1}
+@media(max-width:900px){.dot-nav{display:none}}
+
+/* ===== 見出しフォーカスイン演出 ===== */
+/* 注意: clip-pathやtransform:scale()はIntersectionObserverの交差率計算に影響し
+   「常に0%扱いになって永久にvisibleが付かない」事故を起こすため使わない。
+   opacity/translateY/filter(blur)はIO交差判定に影響しないため安全。 */
+.s-title.fade-in{filter:blur(10px);transition:opacity .65s ease,transform .65s ease,filter .8s ease}
+.s-title.fade-in.visible{filter:blur(0)}
+
+/* ===== 応援メッセージ新着バウンスイン ===== */
+@keyframes cmBounceIn{0%{opacity:0;transform:scale(.7) translateY(14px)}60%{opacity:1;transform:scale(1.04) translateY(-3px)}100%{opacity:1;transform:scale(1) translateY(0)}}
+.cm-new{animation:cmBounceIn .55s cubic-bezier(.34,1.56,.64,1)}
 </style>
 </head>
 <body>
@@ -506,6 +525,16 @@ footer a:hover{text-decoration:underline}
 </div>
 
 <!-- LINE浮きボタン -->
+
+<!-- サイドドットナビ -->
+<nav class="dot-nav" id="dot-nav">
+  <a href="#hero" data-label="トップ" class="active"></a>
+  <a href="#about" data-label="イベント概要"></a>
+  <a href="#plans" data-label="協賛プラン"></a>
+  <a href="#gallery" data-label="過去の様子"></a>
+  <a href="#faq" data-label="よくある質問"></a>
+  <a href="#contact" data-label="申し込む"></a>
+</nav>
 
 <!-- カーソル -->
 <div id="cc">🎵</div>
@@ -1550,11 +1579,12 @@ function tFaq(el) { el.parentElement.classList.toggle('open'); }
 /* ===== CHEER BOARD ===== */
 var cheers = JSON.parse(localStorage.getItem('ks_cheers') || '[]');
 function escH(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-function renderCheers() {
+function renderCheers(highlightNew) {
   var el = document.getElementById('cms');
   if (!cheers.length) { el.innerHTML = '<p style="color:#999;text-align:center;grid-column:1/-1">まだメッセージがありません。最初の応援を書いてみよう！</p>'; return; }
-  el.innerHTML = cheers.slice().reverse().map(function(c) {
-    return '<div class="cm"><div class="cm-name">🎵 ' + escH(c.n) + '</div><div class="cm-text">' + escH(c.t) + '</div></div>';
+  el.innerHTML = cheers.slice().reverse().map(function(c, i) {
+    var cls = 'cm' + (highlightNew && i === 0 ? ' cm-new' : '');
+    return '<div class="' + cls + '"><div class="cm-name">🎵 ' + escH(c.n) + '</div><div class="cm-text">' + escH(c.t) + '</div></div>';
   }).join('');
 }
 function postCheer() {
@@ -1566,7 +1596,7 @@ function postCheer() {
   localStorage.setItem('ks_cheers', JSON.stringify(cheers));
   document.getElementById('cn').value = '';
   document.getElementById('ct').value = '';
-  renderCheers();
+  renderCheers(true);
   showFloat('📝 応援メッセージを送りました！');
 }
 renderCheers();
@@ -1659,6 +1689,15 @@ function ksCallback(d) {
     var doubled = names.concat(names);
     mqTrack.innerHTML = doubled.map(function(n) { return '<span class="sp-marquee-item">' + n + '</span>'; }).join('');
     mqWrap.style.display = '';
+  }
+  // 新規協賛成約時のコンフェッティ（前回訪問時より協賛数が増えていたら発火）
+  var storedCount = localStorage.getItem('ks_sponsor_count');
+  var newCount = d.sponsors.length;
+  if (storedCount === null) {
+    localStorage.setItem('ks_sponsor_count', String(newCount));
+  } else if (newCount > parseInt(storedCount, 10)) {
+    localStorage.setItem('ks_sponsor_count', String(newCount));
+    setTimeout(function() { launchConf(); showFloat('🎉 新しい協賛企業が加わりました！'); }, 700);
   }
 }
 // GAS設定済みの場合にJSONP読み込み
@@ -1776,6 +1815,25 @@ function spawnBubble() {
   setTimeout(function(){ if(el.parentNode) el.parentNode.removeChild(el); }, 9500);
 }
 setInterval(spawnBubble, 800);
+
+/* ===== サイドドットナビ：現在地ハイライト ===== */
+(function() {
+  var dotLinks = document.querySelectorAll('.dot-nav a');
+  if (!dotLinks.length) return;
+  var map = {};
+  dotLinks.forEach(function(a) { map[a.getAttribute('href').slice(1)] = a; });
+  var secs = Object.keys(map).map(function(id) { return document.getElementById(id); }).filter(Boolean);
+  var dotObs = new IntersectionObserver(function(entries) {
+    entries.forEach(function(e) {
+      if (e.isIntersecting) {
+        dotLinks.forEach(function(a) { a.classList.remove('active'); });
+        var link = map[e.target.id];
+        if (link) link.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-45% 0px -45% 0px', threshold: 0 });
+  secs.forEach(function(s) { dotObs.observe(s); });
+})();
 </script>
 </body>
 </html>
