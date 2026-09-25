@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>カオスやストリート Reel</title>
+<meta name="description" content="KAOSUYA STREET MUSIC FESTIVAL 2027 — 15秒モーショングラフィックス・ショーリール（縦型 9:16 リール版）">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@500;700&family=Noto+Sans+JP:wght@700;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#06140B;--fg:#F4FFF0;--lime:#B7F03C;--mute:rgba(244,255,240,.6)}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){--bg:#0B1F12}}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--fg);font-family:'JetBrains Mono',ui-monospace,monospace;overflow:hidden}
+#stage{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:16px}
+canvas{width:100%;height:auto;max-height:100%;aspect-ratio:9/16;object-fit:contain;display:block;border-radius:6px;box-shadow:0 20px 80px rgba(0,0,0,.5);max-width:calc((100vh - 32px) * 9 / 16)}
+#ui{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+#play{pointer-events:auto;cursor:pointer;border:0;border-radius:999px;background:var(--lime);color:#06140B;font:700 16px 'JetBrains Mono',monospace;letter-spacing:.08em;padding:18px 30px;display:flex;gap:12px;align-items:center;box-shadow:0 10px 40px rgba(183,240,60,.35);transition:transform .2s}
+#play:hover{transform:scale(1.05)}
+#play svg{width:18px;height:18px}
+#hint{position:fixed;bottom:10px;left:0;right:0;text-align:center;font-size:11px;color:var(--mute);letter-spacing:.1em}
+.hide{display:none!important}
+body.render #ui,body.render #hint{display:none}
+body.render #stage{padding:0}
+body.render canvas{width:1080px;height:1920px;max-width:none;border-radius:0;box-shadow:none}
+</style>
+</head>
+<body>
+<div id="stage"><canvas id="c" width="1080" height="1920"></canvas></div>
+<div id="ui"><button id="play" type="button" aria-label="音つきで再生"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 4l14 8-14 8z"/></svg>PLAY WITH SOUND</button></div>
+<div id="hint">SPACE：再生／一時停止　·　15s · 128BPM · 1080×1920</div>
+<audio id="au" src="track.mp3" preload="auto"></audio>
+<script>
+'use strict';
+const W = 1080, H = 1920;
+const BPM = 128, B = 60 / BPM, BAR = B * 4, DUR = 15;
+const cv = document.getElementById('c');
+const ctx = cv.getContext('2d');
+
+const C = {
+  ink: '#06140B', ink2: '#0E2A17', lime: '#B7F03C', leaf: '#66BB6A', green: '#2E7D32', deep: '#1B5E20',
+  sky: '#3EC6FF', blue: '#1E88E5', gold: '#FFD54F', white: '#F4FFF0', paper: '#F7FFF2'
+};
+const JP = '"Noto Sans JP", sans-serif', AN = 'Anton, Impact, sans-serif', MO = '"JetBrains Mono", monospace';
+
+/* ---------- math / easing ---------- */
+const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
+const seg = (t, a, b) => clamp((t - a) / (b - a));
+const lerp = (a, b, p) => a + (b - a) * p;
+const outExpo = p => p >= 1 ? 1 : 1 - Math.pow(2, -10 * p);
+const outCubic = p => 1 - Math.pow(1 - p, 3);
+const inCubic = p => p * p * p;
+const inOutCubic = p => p < .5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
+const outBack = p => { const c1 = 1.9, c3 = c1 + 1; return 1 + c3 * Math.pow(p - 1, 3) + c1 * Math.pow(p - 1, 2); };
+const outElastic = p => p === 0 ? 0 : p === 1 ? 1 : Math.pow(2, -9 * p) * Math.sin((p * 10 - .75) * (2 * Math.PI) / 3) + 1;
+const rnd = i => { const x = Math.sin(i * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+const fmt = n => Math.round(n).toLocaleString('en-US');
+
+/* ---------- assets ---------- */
+const IMG = {};
+const IMG_NAMES = ['p1', 'p2', 'p3', 'p5', 'p8', 'p11', 'p13', 'p18', 'p23', 'logo'];
+function loadImages() {
+  return Promise.all(IMG_NAMES.map(n => new Promise(res => {
+    const im = new Image();
+    im.onload = () => { IMG[n] = im; res(); };
+    im.onerror = () => res();
+    im.src = 'img/' + n + (n === 'logo' ? '.png' : '.jpg');
+  })));
+}
+async function loadFonts() {
+  const jp = 'カオスやストリート音楽マルシェ地域交流来場者の歩み名目標第回日間各下関安岡地区公園協賛企業募集中応募締切年実績以降は×→・〜';
+  await Promise.all([
+    document.fonts.load('900 100px "Noto Sans JP"', jp),
+    document.fonts.load('700 100px "Noto Sans JP"', jp),
+    document.fonts.load('100px Anton', 'KAOSUYA STREET MUSIC FESTIVAL 0123456789,.:–'),
+    document.fonts.load('500 20px "JetBrains Mono"', 'ABC 0123'),
+    document.fonts.load('700 20px "JetBrains Mono"', 'ABC 0123')
+  ]).catch(() => {});
+  await document.fonts.ready;
+}
+
+/* grain: 4 pre-baked noise tiles */
+const GRAIN = [];
+function bakeGrain() {
+  for (let k = 0; k < 4; k++) {
+    const g = document.createElement('canvas'); g.width = g.height = 256;
+    const gx = g.getContext('2d'), id = gx.createImageData(256, 256);
+    for (let i = 0; i < id.data.length; i += 4) {
+      const v = rnd(i * 0.37 + k * 999.1) * 255;
+      id.data[i] = id.data[i + 1] = id.data[i + 2] = v; id.data[i + 3] = 255;
+    }
+    gx.putImageData(id, 0, 0); GRAIN.push(g);
+  }
+}
+
+/* ---------- drawing helpers ---------- */
+function cover(img, x, y, w, h, z = 1, ox = .5, oy = .5) {
+  if (!img) { ctx.fillStyle = C.ink2; ctx.fillRect(x, y, w, h); return; }
+  const s = Math.max(w / img.width, h / img.height) * z;
+  const iw = img.width * s, ih = img.height * s;
+  ctx.drawImage(img, x + (w - iw) * ox, y + (h - ih) * oy, iw, ih);
+}
+function text(str, x, y, size, font, color, o = {}) {
+  ctx.save();
+  ctx.font = (o.weight || '') + ' ' + size + 'px ' + font;
+  ctx.fillStyle = color;
+  ctx.textAlign = o.align || 'center';
+  ctx.textBaseline = o.base || 'middle';
+  ctx.letterSpacing = (o.ls || 0) + 'px';
+  if (o.alpha !== undefined) ctx.globalAlpha *= o.alpha;
+  ctx.fillText(str, x, y);
+  ctx.restore();
+}
+function measure(str, size, font, weight = '', ls = 0) {
+  ctx.save(); ctx.font = weight + ' ' + size + 'px ' + font; ctx.letterSpacing = ls + 'px';
+  const w = ctx.measureText(str).width; ctx.restore(); return w;
+}
+/* 衝撃つきのテキスト: スケールダウン + RGBスプリット */
+function slam(str, x, y, size, font, color, bl, o = {}) {
+  const p = outExpo(seg(bl, 0, .24));
+  const s = 1 + (o.from || .45) * (1 - p);
+  const k = Math.exp(-bl / .08);
+  ctx.save();
+  ctx.translate(x, y); ctx.rotate((o.rot || 0) * (1 - p)); ctx.scale(s, s);
+  const off = 36 * k;
+  if (off > .5) {
+    ctx.globalCompositeOperation = o.light ? 'multiply' : 'screen';
+    text(str, -off, 0, size, font, o.c1 || C.sky, { weight: o.weight, ls: o.ls, alpha: .9 });
+    text(str, off, 0, size, font, o.c2 || C.gold, { weight: o.weight, ls: o.ls, alpha: .9 });
+    ctx.globalCompositeOperation = 'source-over';
+  }
+  text(str, 0, 0, size, font, color, { weight: o.weight, ls: o.ls });
+  ctx.restore();
+}
+function bubble(x, y, r, col, a = 1) {
+  if (r <= 0) return;
+  ctx.save(); ctx.globalAlpha *= a;
+  const g = ctx.createRadialGradient(x - r * .35, y - r * .4, r * .05, x, y, r);
+  g.addColorStop(0, 'rgba(255,255,255,.75)');
+  g.addColorStop(.3, col + 'cc');
+  g.addColorStop(1, col + '55');
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+  ctx.lineWidth = Math.max(1.5, r * .025); ctx.strokeStyle = 'rgba(255,255,255,.55)'; ctx.stroke();
+  ctx.fillStyle = 'rgba(255,255,255,.8)';
+  ctx.beginPath(); ctx.ellipse(x - r * .38, y - r * .45, r * .22, r * .1, -.6, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+}
+function bgFill(col) { ctx.fillStyle = col; ctx.fillRect(-60, -60, W + 120, H + 120); }
+function dotGrid(col, a) {
+  ctx.save(); ctx.fillStyle = col; ctx.globalAlpha = a;
+  for (let x = 40; x < W; x += 60) for (let y = 40; y < H; y += 60) ctx.fillRect(x, y, 3, 3);
+  ctx.restore();
+}
+/* 背景に流れるアウトライン文字 */
+function marqueeRows(word, col, a, t, size = 220) {
+  ctx.save(); ctx.globalAlpha = a; ctx.strokeStyle = col; ctx.lineWidth = 3;
+  ctx.font = size + 'px ' + AN; ctx.textBaseline = 'middle';
+  const w = ctx.measureText(word + '  ').width;
+  for (let r = 0; r < Math.ceil(H / 215) + 1; r++) {
+    const dir = r % 2 ? 1 : -1, y = 110 + r * 215;
+    const off = ((t * 380 * dir) % w + w) % w;
+    for (let x = -w + off - w; x < W + w; x += w) ctx.strokeText(word, x, y);
+  }
+  ctx.restore();
+}
+function circleReveal(drawUnder, drawOver, p, cx, cy, ring) {
+  drawUnder();
+  const r = outExpo(p) * 2300;
+  ctx.save(); ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.clip();
+  drawOver(); ctx.restore();
+  if (p < 1) {
+    ctx.save(); ctx.strokeStyle = ring || C.lime; ctx.lineWidth = 34 * (1 - p) + 2;
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.stroke(); ctx.restore();
+  }
+}
+
+/* ================= SCENES — 9:16 (lt = local time 0..BAR) =================
+   Instagram リールのUIを避けるため、主要な文字は y 260〜1500 に収める */
+
+/* 縦書き: 1文字ずつ積む（長音「ー」は縦棒に回転） */
+function vtext(str, x, yc, size, font, color, o = {}) {
+  const chars = [...str], step = size * (o.step || 1.0);
+  const y0 = yc - (chars.length - 1) * step / 2;
+  chars.forEach((ch, i) => {
+    ctx.save(); ctx.translate(x, y0 + i * step);
+    if (ch === 'ー') ctx.rotate(Math.PI / 2);
+    text(ch, 0, 0, size, font, color, { weight: o.weight, alpha: o.alpha });
+    ctx.restore();
+  });
+}
+function vslam(str, x, y, size, font, color, bl, o = {}) {
+  const p = outExpo(seg(bl, 0, .24));
+  const s = 1 + (o.from || .45) * (1 - p);
+  const k = Math.exp(-bl / .08);
+  ctx.save(); ctx.translate(x, y); ctx.rotate((o.rot || 0) * (1 - p)); ctx.scale(s, s);
+  const off = 30 * k;
+  if (off > .5) {
+    ctx.globalCompositeOperation = o.light ? 'multiply' : 'screen';
+    vtext(str, 0, -off, size, font, o.c1 || C.sky, { weight: o.weight, alpha: .9 });
+    vtext(str, 0, off, size, font, o.c2 || C.gold, { weight: o.weight, alpha: .9 });
+    ctx.globalCompositeOperation = 'source-over';
+  }
+  vtext(str, 0, 0, size, font, color, { weight: o.weight });
+  ctx.restore();
+}
+
+/* 01 INTRO */
+function s0(lt) {
+  const g = ctx.createRadialGradient(W / 2, H / 2, 50, W / 2, H / 2, 1200);
+  g.addColorStop(0, '#12361D'); g.addColorStop(1, C.ink);
+  ctx.fillStyle = g; ctx.fillRect(-60, -60, W + 120, H + 120);
+  dotGrid(C.lime, .08 * seg(lt, 0, .4));
+  for (let k = 0; k < 2; k++) {
+    const p = seg(lt, k * .12, .9 + k * .12);
+    if (p > 0 && p < 1) {
+      ctx.save(); ctx.strokeStyle = k ? C.sky : C.lime; ctx.globalAlpha = 1 - p;
+      ctx.lineWidth = 40 * (1 - p) + 2;
+      ctx.beginPath(); ctx.arc(W / 2, H / 2, outExpo(p) * 1300, 0, Math.PI * 2); ctx.stroke(); ctx.restore();
+    }
+  }
+  const bs = [[230, 470, 130, C.leaf], [860, 420, 100, C.sky], [250, 1340, 90, C.gold], [830, 1300, 125, C.lime]];
+  bs.forEach((b, k) => {
+    const p = outBack(seg(lt, k * B, k * B + .35));
+    bubble(b[0] + Math.sin(lt * 2 + k) * 10, b[1] + Math.cos(lt * 2.3 + k) * 12, b[2] * p, b[3], .9);
+  });
+  const lines = ['SHIMONOSEKI · YASUOKA', '8TH EDITION'];
+  const full = lines.join('\n'), n = Math.floor(seg(lt, .05, .85) * full.length);
+  const shown = full.slice(0, n).split('\n');
+  const cur = (Math.floor(lt * 8) % 2 && n < full.length) ? '▌' : '';
+  shown.forEach((ln, i) => text(ln + (i === shown.length - 1 ? cur : ''), W / 2, 630 + i * 50, 30, MO, C.lime, { weight: 700, ls: 8 }));
+  const pd = outCubic(seg(lt, 2 * B, 2 * B + .5));
+  if (pd > 0) {
+    ctx.save(); ctx.font = '330px ' + AN; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.letterSpacing = '10px';
+    const pf = outCubic(seg(lt, 3 * B - .05, 3 * B + .25));
+    const sc = 1 + .08 * (1 - outExpo(seg(lt, 3 * B, 3 * B + .3))) * (pf > 0 ? 1 : 0);
+    ctx.translate(W / 2, 960); ctx.scale(sc, sc);
+    if (pf > 0) {
+      const gr = ctx.createLinearGradient(-350, -150, 350, 150);
+      gr.addColorStop(0, C.lime); gr.addColorStop(1, C.sky);
+      ctx.fillStyle = gr; ctx.globalAlpha = pf; ctx.fillText('2027', 0, 0); ctx.globalAlpha = 1;
+    }
+    ctx.setLineDash([2400, 2400]); ctx.lineDashOffset = 2400 * (1 - pd);
+    ctx.lineWidth = 5; ctx.strokeStyle = C.white; ctx.strokeText('2027', 0, 0);
+    ctx.restore();
+  }
+}
+
+/* 02 TITLE : 縦書きで叩きつける */
+function s1(lt) {
+  const b = Math.min(3, Math.floor(lt / B)), bl = lt - b * B;
+  if (b === 0) {
+    bgFill(C.lime); marqueeRows('KAOSUYA', C.ink, .1, lt);
+    vslam('カオスや', W / 2, 900, 290, JP, C.ink, bl, { weight: 900, rot: -.06, light: true, c1: C.sky, c2: C.leaf });
+  } else if (b === 1) {
+    bgFill(C.sky); marqueeRows('STREET', C.white, .22, lt);
+    vslam('ストリート', W / 2, 900, 240, JP, C.white, bl, { weight: 900, rot: .05, c1: C.lime, c2: C.gold });
+  } else if (b === 2) {
+    bgFill(C.ink); marqueeRows('MUSIC FESTIVAL', C.lime, .08, lt);
+    slam('MUSIC', W / 2, 760, 250, AN, C.lime, bl, { ls: 14 });
+    if (bl > B / 2) slam('FESTIVAL', W / 2, 1040, 200, AN, C.white, bl - B / 2, { ls: 10, from: .6 });
+  } else {
+    bgFill(C.paper); dotGrid(C.green, .12);
+    const st = i => outExpo(seg(bl, i * B / 4, i * B / 4 + .28));
+    const p0 = st(0), p1 = st(1), p2 = st(2);
+    ctx.save(); ctx.globalAlpha = p0; ctx.translate(-(1 - p0) * 500, 0);
+    text('カオスや', W / 2, 700, 190, JP, C.green, { weight: 900 }); ctx.restore();
+    ctx.save(); ctx.globalAlpha = p1; ctx.translate((1 - p1) * 500, 0);
+    text('ストリート', W / 2, 900, 170, JP, C.blue, { weight: 900 }); ctx.restore();
+    const rw = 960 * p2;
+    ctx.save(); ctx.fillStyle = C.leaf; ctx.fillRect(W / 2 - rw / 2, 1040, rw, 130);
+    ctx.fillStyle = C.green; ctx.fillRect(W / 2 - rw / 2, 1160, rw, 10);
+    ctx.beginPath(); ctx.rect(W / 2 - rw / 2, 1040, rw, 130); ctx.clip();
+    text('MUSIC FESTIVAL 2027', W / 2, 1108, 84, AN, C.white, { ls: 6 });
+    ctx.restore();
+    bubble(170, 460, 90 * outBack(st(1)), C.sky, .8);
+    bubble(900, 1330, 120 * outBack(st(2)), C.lime, .8);
+    bubble(880, 430, 60 * outBack(st(3)), C.leaf, .8);
+  }
+}
+
+/* 03 SCENES */
+const PH = [['p3', '音楽', '01 / MUSIC', C.lime, 820, 520], ['p5', 'マルシェ', '02 / MARCHE', C.sky, 240, 1320], ['p8', '地域交流', '03 / COMMUNITY', C.gold, 800, 1180]];
+function photoFrame(i, bl) {
+  const ph = PH[i];
+  cover(IMG[ph[0]], -40, -40, W + 80, H + 80, 1.12 - .08 * seg(bl, 0, B * 1.5), .5, .5);
+  const g = ctx.createLinearGradient(0, H * .45, 0, H);
+  g.addColorStop(0, 'rgba(6,20,11,0)'); g.addColorStop(1, 'rgba(6,20,11,.8)');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+}
+function photoLabel(i, bl) {
+  const ph = PH[i];
+  const tw = measure(ph[1], 140, JP, 900) + 80;
+  const p = outExpo(seg(bl, .03, .2));
+  ctx.fillStyle = ph[3]; ctx.fillRect(70, 1200, tw * p, 175);
+  if (p > .6) text(ph[1], 110, 1290, 140, JP, C.ink, { weight: 900, align: 'left' });
+  text(ph[2], 75, 1165, 28, MO, C.white, { weight: 700, align: 'left', ls: 8, alpha: seg(bl, .08, .2) });
+}
+function s2(lt) {
+  const b = Math.min(3, Math.floor(lt / B)), bl = lt - b * B;
+  if (b < 3) {
+    const ph = PH[b];
+    const under = b === 0 ? () => s1(BAR - 1e-4) : () => { photoFrame(b - 1, bl + B); photoLabel(b - 1, B); };
+    circleReveal(under, () => photoFrame(b, bl), seg(bl, 0, .34), ph[4], ph[5], ph[3]);
+    photoLabel(b, bl);
+  } else {
+    const st = ['p18', 'p11', 'p13', 'p23'];
+    const k = Math.min(3, Math.floor(bl / (B / 4)));
+    cover(IMG[st[k]], -40, -40, W + 80, H + 80, 1.06 + k * .03, .5, .5);
+    ctx.fillStyle = 'rgba(6,20,11,.45)'; ctx.fillRect(0, 0, W, H);
+    ctx.save(); ctx.strokeStyle = [C.lime, C.sky, C.gold, C.white][k]; ctx.lineWidth = 14;
+    ctx.strokeRect(40 + k * 6, 40 + k * 6, W - 80 - k * 12, H - 80 - k * 12); ctx.restore();
+    ctx.fillStyle = C.ink; ctx.fillRect(0, 620, W, 560);
+    const rows = [['音楽', C.lime], ['× マルシェ', C.sky], ['× 地域交流', C.gold]];
+    rows.forEach((r, i) => {
+      const a = seg(bl, i * .06, i * .06 + .07);
+      ctx.save(); ctx.globalAlpha = a; ctx.translate((1 - a) * (i % 2 ? 60 : -60), 0);
+      text(r[0], W / 2, 740 + i * 160, 130, JP, r[1], { weight: 900 }); ctx.restore();
+    });
+  }
+}
+
+/* 04 GROWTH */
+const GROW = [[800, 2020], [1200, 2021], [2000, 2022], [3000, 2023], [3500, 2024], [4000, 2025], [5000, 2026], [6000, 2027]];
+const CH_X0 = 80, CH_W = 920, CH_BASE = 1380, CH_H = 540;
+const barX = i => CH_X0 + i * (CH_W / 8) + 9;
+const BW = CH_W / 8 - 18;
+function s3(lt) {
+  bgFill(C.ink);
+  ctx.save(); ctx.strokeStyle = 'rgba(183,240,60,.07)'; ctx.lineWidth = 1;
+  for (let y = CH_BASE; y > CH_BASE - CH_H - 10; y -= CH_H / 6) { ctx.beginPath(); ctx.moveTo(CH_X0, y); ctx.lineTo(CH_X0 + CH_W, y); ctx.stroke(); }
+  ctx.restore();
+  let shown = -1;
+  GROW.forEach((g, i) => {
+    const ti = i * B / 2;
+    const p = seg(lt, ti, ti + .3);
+    if (p <= 0) return;
+    if (i < 7) shown = i;
+    const h = g[0] / 6000 * CH_H * outBack(p);
+    const x = barX(i), y = CH_BASE - h;
+    if (i === 7) {
+      ctx.save(); ctx.setLineDash([12, 9]); ctx.lineDashOffset = -lt * 60;
+      ctx.strokeStyle = C.gold; ctx.lineWidth = 4; ctx.strokeRect(x, y, BW, h);
+      ctx.fillStyle = 'rgba(255,213,79,.14)'; ctx.fillRect(x, y, BW, h); ctx.restore();
+      vtext('目標', x + BW / 2, y + 90, 34, JP, C.gold, { weight: 900, alpha: p });
+    } else {
+      const gr = ctx.createLinearGradient(0, CH_BASE, 0, CH_BASE - CH_H);
+      gr.addColorStop(0, C.green); gr.addColorStop(1, C.lime);
+      ctx.fillStyle = gr; ctx.fillRect(x, y, BW, h);
+      const pulse = Math.exp(-((lt % B)) / .12);
+      ctx.fillStyle = 'rgba(255,255,255,' + (.25 * pulse) + ')'; ctx.fillRect(x, y, BW, 8);
+    }
+    text(fmt(g[0]), x + BW / 2, y - 26, 32, AN, i === 7 ? C.gold : C.white, { alpha: seg(lt, ti + .08, ti + .2) });
+    text('第' + (i + 1) + '回', x + BW / 2, CH_BASE + 32, 24, JP, C.white, { weight: 700, alpha: .85 * p });
+    text(String(g[1]), x + BW / 2, CH_BASE + 64, 19, MO, C.lime, { weight: 500, alpha: .7 * p });
+  });
+  ctx.fillStyle = C.white; ctx.fillRect(CH_X0, CH_BASE, CH_W, 4);
+
+  const ti = Math.max(0, shown) * B / 2;
+  const from = shown > 0 ? GROW[shown - 1][0] : 0, to = shown >= 0 ? GROW[shown][0] : 0;
+  const val = lerp(from, to, outExpo(seg(lt, ti, ti + .22)));
+  text('VISITORS · 2 DAYS TOTAL', 80, 300, 26, MO, C.lime, { weight: 700, align: 'left', ls: 6 });
+  text('来場者の歩み', 80, 380, 72, JP, C.white, { weight: 900, align: 'left' });
+  text(fmt(val), 70, 560, 220, AN, C.lime, { align: 'left' });
+  text('名', 80 + measure(fmt(val), 220, AN) + 10, 600, 80, JP, C.white, { weight: 900, align: 'left' });
+  text('第' + (Math.max(0, shown) + 1) + '回 ' + GROW[Math.max(0, shown)][1], 80, 710, 34, JP, C.white, { weight: 700, align: 'left', alpha: .8 });
+  const pt = seg(lt, 3.5 * B, 3.5 * B + .2);
+  text('→ 2027  6,000名 目標', 80, 770, 40, JP, C.gold, { weight: 900, align: 'left', alpha: pt });
+  text('第1〜7回は実績値／第8回は目標値（2日間合計）', 80, 1490, 22, JP, C.white, { weight: 700, align: 'left', alpha: .5 });
+}
+
+/* 05 TARGET */
+function s4(lt) {
+  const tx = barX(7) + BW / 2, ty = CH_BASE - CH_H;
+  const body = () => {
+    bgFill(C.lime);
+    const cx = W / 2, cy = 820;
+    ctx.save(); ctx.translate(cx, cy);
+    [[270, .5, 3], [340, -.35, 2], [420, .2, 2]].forEach((r, i) => {
+      ctx.save(); ctx.rotate(lt * r[1] * 2); ctx.setLineDash([2 + i * 10, 18 + i * 8]);
+      ctx.strokeStyle = 'rgba(6,20,11,.25)'; ctx.lineWidth = r[2];
+      ctx.beginPath(); ctx.arc(0, 0, r[0], 0, Math.PI * 2); ctx.stroke(); ctx.restore();
+    });
+    const v = 6000 * outExpo(seg(lt, .05, 1.15));
+    ctx.strokeStyle = C.ink; ctx.lineWidth = 16; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.arc(0, 0, 380, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * v / 6000); ctx.stroke();
+    ctx.restore();
+    for (let i = 0; i < 11; i++) {
+      const y = (H + 200) - ((lt * (140 + rnd(i) * 180) + rnd(i + 9) * H) % (H + 400));
+      bubble(80 + rnd(i + 3) * (W - 160), y, 20 + rnd(i + 5) * 50, '#FFFFFF', .5);
+    }
+    const bl = lt % B, pulse = 1 + .045 * Math.exp(-bl / .1) * (lt > 1.15 ? 1 : 0);
+    ctx.save(); ctx.translate(cx, cy); ctx.scale(pulse, pulse);
+    const s = fmt(Math.round(v / 10) * 10);
+    const w = measure('6,000', 210, AN, '', 4), wu = measure('名', 84, JP, 900);
+    const gx = -(w + 12 + wu) / 2;
+    text(s, gx, 8, 210, AN, C.ink, { ls: 4, align: 'left' });
+    text('名', gx + w + 12, 48, 84, JP, C.ink, { weight: 900, align: 'left' });
+    ctx.restore();
+    const p2 = outExpo(seg(lt, 2 * B, 2 * B + .3));
+    ctx.save(); ctx.globalAlpha = p2; ctx.translate(0, (1 - p2) * 40);
+    ctx.fillStyle = C.ink; const pw = 660; ctx.beginPath(); ctx.roundRect(cx - pw / 2, 1290, pw, 104, 52); ctx.fill();
+    text('2日間 来場目標', cx, 1342, 60, JP, C.lime, { weight: 900 });
+    ctx.restore();
+    text('EACH DAY 3,000 × 2 DAYS', cx, 1450, 26, MO, C.ink, { weight: 700, ls: 6, alpha: seg(lt, 2.5 * B, 2.5 * B + .2) });
+  };
+  if (lt < .4) circleReveal(() => s3(BAR - 1e-4), body, seg(lt, 0, .4), tx, ty, C.gold);
+  else body();
+}
+
+/* 06 EDITION 8 : 横に走る斜めバンド × 3 */
+const PANELS = ['p1', 'p18', 'p2'];
+const SK = 90;
+function panelPath(i, dx) {
+  const h = H / 3, y0 = i * h;
+  ctx.beginPath();
+  ctx.moveTo(dx - 20, y0 + SK - 10); ctx.lineTo(dx + W + 20, y0 - SK - 10);
+  ctx.lineTo(dx + W + 20, y0 + h - SK + 10); ctx.lineTo(dx - 20, y0 + h + SK + 10); ctx.closePath();
+}
+function s5(lt) {
+  bgFill(C.ink);
+  const zoom = 1 + .06 * inOutCubic(seg(lt, 3 * B, BAR));
+  ctx.save(); ctx.translate(W / 2, H / 2); ctx.scale(zoom, zoom); ctx.translate(-W / 2, -H / 2);
+  PANELS.forEach((n, i) => {
+    const p = outExpo(seg(lt, i * B / 2, i * B / 2 + .4));
+    const dx = (i % 2 ? -1 : 1) * W * 1.2 * (1 - p);
+    const h = H / 3, y0 = i * h;
+    ctx.save(); panelPath(i, dx); ctx.clip();
+    cover(IMG[n], dx - 200 + (lt * 40) * (i % 2 ? -1 : 1), y0 - SK - 20, W + 400, h + SK * 2 + 40, 1.05, .5, .5);
+    ctx.fillStyle = 'rgba(6,20,11,.25)'; ctx.fillRect(0, 0, W, H);
+    ctx.restore();
+    if (p > 0) {
+      ctx.save(); ctx.strokeStyle = [C.lime, C.sky, C.gold][i]; ctx.lineWidth = 10;
+      panelPath(i, dx); ctx.stroke(); ctx.restore();
+    }
+  });
+  ctx.restore();
+  const pt = seg(lt, 1.5 * B, 1.5 * B + .3);
+  if (pt > 0) {
+    const s = 1 + .6 * (1 - outExpo(pt));
+    ctx.save(); ctx.globalAlpha = clamp(pt * 3); ctx.translate(W / 2, H / 2 - 60); ctx.scale(s, s);
+    ctx.fillStyle = 'rgba(6,20,11,.82)'; ctx.fillRect(-460, -200, 920, 400);
+    text('第8回', 0, -30, 250, JP, C.white, { weight: 900 });
+    text('8TH EDITION · SINCE 2020', 0, 130, 46, AN, C.lime, { ls: 10 });
+    ctx.restore();
+  }
+}
+
+/* 07 DATE / VENUE */
+function venueBody(lt) {
+  cover(IMG.p1, -60, -60, W + 120, H + 120, 1.05 + .12 * seg(lt, 0, BAR), .45, .6);
+  ctx.fillStyle = 'rgba(6,20,11,.72)'; ctx.fillRect(0, 0, W, H);
+  ctx.save(); ctx.globalCompositeOperation = 'color'; ctx.fillStyle = C.green; ctx.globalAlpha = .6; ctx.fillRect(0, 0, W, H); ctx.restore();
+  const wipe = (t0, x, y, w, h, fn) => {
+    const p = outExpo(seg(lt, t0, t0 + .3));
+    if (p <= 0) return;
+    ctx.save(); ctx.beginPath(); ctx.rect(x, y + h * (1 - p), w, h * p + 2); ctx.clip();
+    ctx.translate(0, (1 - p) * h * .6); fn(); ctx.restore();
+  };
+  text('2027', 95, 330, 34, MO, C.lime, { weight: 700, align: 'left', ls: 12, alpha: seg(lt, 0, .15) });
+  wipe(0, 60, 360, 960, 260, () => {
+    text('3.13', 80, 490, 250, AN, C.white, { align: 'left', ls: 6 });
+    text('SAT', 80 + measure('3.13', 250, AN, '', 6) + 26, 545, 90, AN, C.lime, { align: 'left', ls: 4 });
+  });
+  wipe(B, 60, 630, 960, 260, () => {
+    text('3.14', 80, 760, 250, AN, C.white, { align: 'left', ls: 6 });
+    text('SUN', 80 + measure('3.14', 250, AN, '', 6) + 26, 815, 90, AN, C.sky, { align: 'left', ls: 4 });
+  });
+  wipe(B * 1.5, 60, 900, 960, 110, () => text('10:00 – 16:00', 85, 955, 76, AN, C.gold, { align: 'left', ls: 6 }));
+  const pp = seg(lt, 2 * B, 2 * B + .45);
+  const px = 150, pyEnd = 1170;
+  if (pp > 0) {
+    const y = lerp(-200, pyEnd, outBack(pp));
+    ctx.save(); ctx.translate(px, y);
+    ctx.fillStyle = C.lime; ctx.beginPath();
+    ctx.arc(0, -70, 56, Math.PI * .85, Math.PI * .15); ctx.lineTo(0, 26); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = C.ink; ctx.beginPath(); ctx.arc(0, -72, 22, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+    const rp = seg(lt, 2 * B + .3, 2 * B + .9);
+    if (rp > 0 && rp < 1) {
+      ctx.save(); ctx.strokeStyle = C.lime; ctx.globalAlpha = 1 - rp; ctx.lineWidth = 4;
+      ctx.beginPath(); ctx.ellipse(px, pyEnd + 30, 40 + 120 * rp, 12 + 34 * rp, 0, 0, Math.PI * 2); ctx.stroke(); ctx.restore();
+    }
+  }
+  wipe(2 * B + .12, 230, 1060, 700, 130, () => text('下関', 240, 1128, 100, JP, C.white, { weight: 900, align: 'left' }));
+  wipe(2 * B + .24, 60, 1210, 960, 150, () => text('安岡地区公園', 80, 1290, 125, JP, C.white, { weight: 900, align: 'left' }));
+  text('SHIMONOSEKI · YASUOKA', 85, 1400, 28, MO, C.lime, { weight: 700, align: 'left', ls: 8, alpha: seg(lt, 2 * B + .4, 2 * B + .6) });
+}
+function s6(lt) {
+  if (lt < .3) {
+    s5(BAR - 1e-4);
+    const p = inOutCubic(seg(lt, 0, .3));
+    ctx.save(); ctx.beginPath();
+    const x = lerp(-700, W + 700, p);
+    ctx.moveTo(-700, 0); ctx.lineTo(x + 400, 0); ctx.lineTo(x - 400, H); ctx.lineTo(-700, H); ctx.closePath(); ctx.clip();
+    venueBody(lt); ctx.restore();
+    ctx.save(); ctx.strokeStyle = C.lime; ctx.lineWidth = 16; ctx.beginPath(); ctx.moveTo(x + 400, 0); ctx.lineTo(x - 400, H); ctx.stroke(); ctx.restore();
+  } else venueBody(lt);
+  const bp = seg(lt, 3 * B, BAR);
+  if (bp > 0) {
+    const f = Math.exp(-((lt - 3 * B) % (B / 4)) / .03) * .18 * bp;
+    ctx.fillStyle = 'rgba(244,255,240,' + (f + inCubic(seg(lt, BAR - .12, BAR))) + ')';
+    ctx.fillRect(-60, -60, W + 120, H + 120);
+  }
+}
+
+/* 08 SPONSOR CALL */
+const LOGO_X = W / 2, LOGO_Y = 560;
+function s7(lt) {
+  const g = ctx.createLinearGradient(0, 0, W, H);
+  g.addColorStop(0, C.paper); g.addColorStop(1, '#DDF3C6');
+  ctx.fillStyle = g; ctx.fillRect(-60, -60, W + 120, H + 120);
+  const rg = ctx.createRadialGradient(LOGO_X, LOGO_Y, 50, LOGO_X, LOGO_Y, 650);
+  rg.addColorStop(0, 'rgba(255,255,255,.9)'); rg.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = rg; ctx.fillRect(0, 0, W, H);
+  const cols = [C.lime, C.sky, C.leaf, C.gold, C.blue];
+  for (let i = 0; i < 34; i++) {
+    const a = rnd(i) * Math.PI * 2, d = 250 + rnd(i + 40) * 900;
+    const p = outExpo(seg(lt, 0, 1.3));
+    const x = LOGO_X + Math.cos(a) * d * p * .8, y = LOGO_Y + Math.sin(a) * d * p - lt * (30 + rnd(i + 7) * 60);
+    bubble(x, y, (12 + rnd(i + 80) * 55) * p, cols[i % 5], y > 860 && y < 1500 ? .2 : .75);
+  }
+  const lp = outElastic(seg(lt, .04, 1.1));
+  if (IMG.logo && lp > 0) {
+    const s = 600 * lp;
+    ctx.save(); ctx.translate(LOGO_X, LOGO_Y + Math.sin(lt * 2.4) * 6); ctx.rotate((1 - clamp(lp)) * -.2);
+    ctx.drawImage(IMG.logo, -s / 2, -s / 2, s, s); ctx.restore();
+  }
+  const item = (t0, fn) => {
+    const p = outExpo(seg(lt, t0, t0 + .35));
+    if (p <= 0) return;
+    ctx.save(); ctx.globalAlpha = p; ctx.translate(0, (1 - p) * 60); fn(); ctx.restore();
+  };
+  const X = W / 2;
+  item(B * .75, () => text('協賛企業', X, 950, 100, JP, C.deep, { weight: 900 }));
+  item(B * 1.0, () => {
+    const hp = outExpo(seg(lt, B * 1.2, B * 1.2 + .3));
+    const mw = measure('募集中', 150, JP, 900) + 16;
+    ctx.fillStyle = C.lime; ctx.fillRect(X - mw / 2, 1128, mw * hp, 32);
+    text('募集中', X, 1090, 150, JP, C.green, { weight: 900 });
+  });
+  item(B * 1.6, () => {
+    ctx.fillStyle = C.deep; ctx.beginPath(); ctx.roundRect(X - 320, 1200, 640, 90, 45); ctx.fill();
+    text('応募締切  2026.11.15', X, 1247, 44, JP, C.white, { weight: 900 });
+  });
+  item(B * 2.1, () => text('2027.3.13 SAT – 3.14 SUN', X, 1352, 52, AN, C.ink, { ls: 3 }));
+  item(B * 2.3, () => text('下関 安岡地区公園　10:00–16:00', X, 1420, 34, JP, C.ink, { weight: 700, alpha: .85 }));
+  item(B * 2.6, () => text('kaosuya.yamanisi.co.jp', X, 1480, 30, MO, C.blue, { weight: 700, ls: 2 }));
+  const fl = 1 - outCubic(seg(lt, 0, .4));
+  if (fl > 0) { ctx.fillStyle = 'rgba(255,255,255,' + fl + ')'; ctx.fillRect(-60, -60, W + 120, H + 120); }
+}
+
+const SCENES = [s0, s1, s2, s3, s4, s5, s6, s7];
+const LABELS = ['INTRO', 'TITLE', 'SCENES', 'GROWTH', 'TARGET', 'EDITION 8', 'DATE / VENUE', 'SPONSOR CALL'];
+
+/* ---------- transitions / post ---------- */
+function streaks(t) {
+  // 小節の境目を横切るカラーストリーク
+  for (const tb of [BAR, 3 * BAR, 5 * BAR]) {
+    const d = t - tb;
+    if (d < -.15 || d > .15) continue;
+    const cols = [C.lime, C.sky, C.gold, C.ink, C.white, C.leaf];
+    const rows = 12, h = H / rows;
+    for (let r = 0; r < rows; r++) {
+      const dl = rnd(r + tb * 10) * .05;
+      let x0, x1;
+      if (d < 0) { const p = outCubic(seg(d, -.15 + dl, 0)); x0 = 0; x1 = W * p; }
+      else { const p = inCubic(seg(d, dl, .15)); x0 = W * p; x1 = W; }
+      ctx.fillStyle = cols[(r + Math.floor(tb)) % cols.length];
+      ctx.fillRect(x0, r * h - 1, x1 - x0, h + 2);
+    }
+  }
+}
+function isLight(si, lt) {
+  if (si === 4 || si === 7) return true;
+  if (si === 1) { const b = Math.floor(lt / B); return b === 0 || b === 3; }
+  return false;
+}
+function hud(t, si, lt) {
+  const light = isLight(si, lt);
+  const col = light ? 'rgba(6,20,11,.8)' : 'rgba(244,255,240,.85)';
+  ctx.save(); ctx.strokeStyle = col; ctx.lineWidth = 3;
+  const m = 36, L = 36;
+  [[m, m, 1, 1], [W - m, m, -1, 1], [m, H - m, 1, -1], [W - m, H - m, -1, -1]].forEach(([x, y, sx, sy]) => {
+    ctx.beginPath(); ctx.moveTo(x, y + L * sy); ctx.lineTo(x, y); ctx.lineTo(x + L * sx, y); ctx.stroke();
+  });
+  ctx.restore();
+  const on = Math.floor(t * 2) % 2 === 0;
+  ctx.fillStyle = light ? C.green : C.lime;
+  if (on) { ctx.beginPath(); ctx.arc(80, 110, 7, 0, Math.PI * 2); ctx.fill(); }
+  text('KAOSUYA STREET — REEL 2027', 98, 111, 18, MO, col, { weight: 700, align: 'left', ls: 3 });
+  const fr = Math.floor(t * 30), ss = Math.floor(fr / 30), ff = fr % 30;
+  text('00:' + String(ss).padStart(2, '0') + ':' + String(ff).padStart(2, '0') + '  128BPM', W - 70, 111, 18, MO, col, { weight: 700, align: 'right', ls: 2 });
+  const x0 = 70, x1 = W - 70, y = 165;
+  ctx.fillStyle = light ? 'rgba(6,20,11,.2)' : 'rgba(244,255,240,.2)'; ctx.fillRect(x0, y, x1 - x0, 2);
+  const cb = Math.floor(t / B);
+  for (let i = 0; i <= 32; i++) {
+    const x = lerp(x0, x1, i / 32), bar = i % 4 === 0;
+    ctx.fillStyle = i <= cb ? (light ? C.green : C.lime) : (light ? 'rgba(6,20,11,.35)' : 'rgba(244,255,240,.35)');
+    ctx.fillRect(x - 1, y - (bar ? 10 : 5), 2, bar ? 20 : 10);
+  }
+  ctx.fillStyle = light ? C.green : C.lime; ctx.fillRect(x0, y - 1, (x1 - x0) * t / DUR, 4);
+  text(String(si + 1).padStart(2, '0') + '  ' + LABELS[si], x0, y + 38, 17, MO, col, { weight: 700, align: 'left', ls: 4 });
+  text('BAR ' + (si + 1) + '/8 · BEAT ' + (Math.min(3, Math.floor(lt / B)) + 1), x1, y + 38, 17, MO, col, { weight: 700, align: 'right', ls: 2 });
+}
+
+function render(t) {
+  t = clamp(t, 0, DUR - 1e-4);
+  const si = Math.min(7, Math.floor(t / BAR)), lt = t - si * BAR;
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+  ctx.clearRect(0, 0, W, H);
+  // カメラ: キックごとのシェイクとパンチイン
+  const sb = t % B, kickOn = (si >= 1 && si <= 6);
+  let amp = kickOn ? 7 * Math.exp(-sb / .07) : 0, punch = kickOn ? .014 * Math.exp(-sb / .1) : 0;
+  if (si === 6 && lt > 3 * B) amp += 10 * seg(lt, 3 * B, BAR);
+  if (t < .3) { amp += 14 * Math.exp(-t / .08); punch += .03 * Math.exp(-t / .12); }
+  if (si === 7 && lt < .4) { amp += 16 * Math.exp(-lt / .08); }
+  const fr = Math.floor(t * 60);
+  ctx.save();
+  ctx.translate(W / 2 + (rnd(fr) - .5) * amp * 2, H / 2 + (rnd(fr + 3) - .5) * amp * 2);
+  ctx.scale(1 + punch, 1 + punch); ctx.translate(-W / 2, -H / 2);
+  SCENES[si](lt);
+  ctx.restore();
+  streaks(t);
+  if (!isLight(si, lt)) {
+    const v = ctx.createRadialGradient(W / 2, H / 2, H * .45, W / 2, H / 2, H * 1.05);
+    v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, 'rgba(0,0,0,.45)');
+    ctx.fillStyle = v; ctx.fillRect(0, 0, W, H);
+  }
+  if (GRAIN.length) {
+    ctx.save(); ctx.globalAlpha = .06; ctx.globalCompositeOperation = 'overlay';
+    const pat = ctx.createPattern(GRAIN[fr % 4], 'repeat');
+    ctx.translate(rnd(fr) * 256, rnd(fr + 1) * 256); ctx.fillStyle = pat; ctx.fillRect(-256, -256, W + 512, H + 512);
+    ctx.restore();
+  }
+  hud(t, si, lt);
+}
+
+/* ---------- playback ---------- */
+const au = document.getElementById('au');
+const btn = document.getElementById('play');
+let playing = false, startedAt = 0, ready = false;
+function now() {
+  if (au && !au.paused && au.readyState >= 2 && !au.error) return au.currentTime;
+  return (performance.now() - startedAt) / 1000;
+}
+function loop() {
+  if (!playing) return;
+  const t = now();
+  if (t >= DUR) { playing = false; render(DUR - 1e-3); btn.classList.remove('hide'); return; }
+  render(t);
+  requestAnimationFrame(loop);
+}
+function start() {
+  if (!ready) return;
+  btn.classList.add('hide');
+  playing = true; startedAt = performance.now();
+  try { au.currentTime = 0; const pr = au.play(); if (pr) pr.catch(() => {}); } catch (e) {}
+  requestAnimationFrame(loop);
+}
+function pause() {
+  playing = false; try { au.pause(); } catch (e) {}
+  btn.classList.remove('hide');
+}
+btn.addEventListener('click', start);
+cv.addEventListener('click', () => playing ? pause() : start());
+document.addEventListener('keydown', e => { if (e.code === 'Space') { e.preventDefault(); playing ? pause() : start(); } });
+
+window.renderAt = render;
+window.__ready = (async () => {
+  if (/[?&]render/.test(location.search)) document.body.classList.add('render');
+  bakeGrain();
+  await Promise.all([loadImages(), loadFonts()]);
+  ready = true;
+  render(14.4);
+  return true;
+})();
+</script>
+</body>
+</html>

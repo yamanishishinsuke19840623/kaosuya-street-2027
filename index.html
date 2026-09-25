@@ -763,6 +763,28 @@ footer .related-sites__arrow{width:18px;height:18px;flex:0 0 18px;color:var(--re
     <div class="s-label fade-in"><div class="s-label-line"></div><span class="s-label-text" style="color:var(--org)">Movie</span></div>
     <h2 class="s-title fade-in">過去の動画</h2>
     <p class="s-sub fade-in" style="text-align:center;margin-bottom:36px">2027年3月13日・14日開催。地域が一体となる音楽の祭典をご覧ください。</p>
+    <!-- 2027 ショーリール（15秒・showreel/ で制作） -->
+    <div class="fade-in" style="max-width:960px;margin:0 auto 36px">
+      <div style="position:relative;border-radius:var(--rad);overflow:hidden;box-shadow:var(--sh-lg);background:#06140B;aspect-ratio:16/9">
+        <video id="showreel-video" controls muted loop playsinline preload="none" poster="showreel/showreel_poster.jpg" style="display:block;width:100%;height:100%;object-fit:cover" aria-label="KAOSUYA STREET MUSIC FESTIVAL 2027 ショーリール（15秒）">
+          <source src="showreel/showreel_lp_720p.mp4" type="video/mp4">
+        </video>
+      </div>
+      <p style="text-align:center;margin-top:12px;font-size:13px;color:var(--sub)">2027 ショーリール（15秒・🔊音声つき）</p>
+    </div>
+    <script>
+    (function(){
+      var v = document.getElementById('showreel-video');
+      if (!v || !('IntersectionObserver' in window)) return;
+      // 画面に入ったらミュートで自動再生、外れたら一時停止（音を出した後はユーザー操作に任せる）
+      new IntersectionObserver(function(es){
+        es.forEach(function(e){
+          if (e.isIntersecting) { if (v.muted) { var p = v.play(); if (p) p.catch(function(){}); } }
+          else if (v.muted) v.pause();
+        });
+      }, { threshold: .5 }).observe(v);
+    })();
+    </script>
     <div class="fade-in" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;max-width:960px;margin:0 auto">
       <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:var(--rad);box-shadow:var(--sh)">
         <iframe src="https://www.youtube-nocookie.com/embed/AmRZyx2bPM8" title="カオスやストリート 動画1" frameborder="0" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture;web-share" allowfullscreen style="position:absolute;top:0;left:0;width:100%;height:100%;border-radius:var(--rad)"></iframe>
