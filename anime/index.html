@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>カオスやストリート Paper Story</title>
+<meta name="description" content="カオスやストリートって なに？ — 紙コラージュ風の紹介アニメーション（縦型・約47秒）">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mochiy+Pop+One&family=Zen+Maru+Gothic:wght@700;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#3B2A1A;--fg:#FFF8EC;--accent:#F2C14E}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--fg);font-family:'Zen Maru Gothic',sans-serif;overflow:hidden}
+#stage{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:16px}
+canvas{height:100%;width:auto;max-width:100%;aspect-ratio:9/16;display:block;border-radius:8px;box-shadow:0 20px 80px rgba(0,0,0,.5)}
+#ui{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+#play{pointer-events:auto;cursor:pointer;border:0;border-radius:999px;background:var(--accent);color:#3B2A1A;font:900 17px 'Zen Maru Gothic',sans-serif;padding:16px 28px;display:flex;gap:10px;align-items:center;box-shadow:0 10px 40px rgba(0,0,0,.35)}
+#play svg{width:18px;height:18px}
+.hide{display:none!important}
+body.render #ui{display:none}
+body.render #stage{padding:0}
+body.render canvas{width:1080px;height:1920px;max-width:none;border-radius:0;box-shadow:none}
+</style>
+</head>
+<body>
+<div id="stage"><canvas id="c" width="1080" height="1920"></canvas></div>
+<div id="ui"><button id="play" type="button" aria-label="音つきで再生"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 4l14 8-14 8z"/></svg>音つきで再生</button></div>
+<audio id="au" src="track.mp3" preload="auto"></audio>
+<script>
+'use strict';
+/* =========================================================
+   カオスやストリートって なに？ — 紙コラージュ・アニメーション
+   1080×1920 / 96BPM / 19小節 = 47.5秒
+   動きは 12fps に量子化（コマ撮り風）、紙は 6fps で「ゆらぎ」
+   ========================================================= */
+const W = 1080, H = 1920;
+const BPM = 96, B = 60 / BPM, BAR = B * 4, DUR = 19 * BAR;
+const cv = document.getElementById('c'), ctx = cv.getContext('2d');
+
+const P = {
+  kraft: '#D6BC92', cream: '#F4ECDC', paper: '#FBF7EE', ink: '#2B2620', brown: '#8A6440',
+  card: '#C99A62', leaf: '#5DAE3B', green: '#2E7D32', lime: '#B8D84A', sky: '#7CC8EA',
+  blue: '#1E88E5', red: '#D9463B', gold: '#F2C14E', pink: '#F2A0B4', orange: '#EE8A3C',
+  stage: '#3A3634', mint: '#CFE8C4'
+};
+const TITLE = '"Mochiy Pop One", sans-serif', BODY = '"Zen Maru Gothic", sans-serif';
+
+/* ---------- utils ---------- */
+const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
+const lerp = (a, b, p) => a + (b - a) * p;
+const rnd = i => { const x = Math.sin(i * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+const outBack = p => { const c1 = 2.0, c3 = c1 + 1; return 1 + c3 * Math.pow(p - 1, 3) + c1 * Math.pow(p - 1, 2); };
+const outCubic = p => 1 - Math.pow(1 - p, 3);
+const inOut = p => p < .5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
+
+/* ---------- time / cues ----------
+   T  : 12fps に量子化した時刻（コマ撮り）   BOIL : 6fps の紙ゆらぎ番号
+   CUES は描画中に登録され、音声合成（tools/synth.py）が読む */
+let T = 0, BOIL = 0;
+const CUES = new Map();
+function cue(type, beat) { const k = type + '@' + beat.toFixed(3); if (!CUES.has(k)) CUES.set(k, { type, t: +(beat * B).toFixed(4) }); }
+/* ent: beat b0 から dur 拍かけて 0→1。sfx を登録 */
+function ent(b0, dur = .6, sfx = 'paper') {
+  if (sfx) cue(sfx, b0);
+  return clamp((T - b0 * B) / (dur * B));
+}
+const since = b0 => T - b0 * B;
+
+/* ---------- textures ---------- */
+const TEX = {};
+function bakeFiber(w, h, base, seed, fibers = true) {
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  const g = c.getContext('2d');
+  g.fillStyle = base; g.fillRect(0, 0, w, h);
+  const id = g.getImageData(0, 0, w, h), d = id.data;
+  for (let i = 0; i < d.length; i += 4) {
+    const n = (rnd(i * .013 + seed) - .5) * 18;
+    d[i] += n; d[i + 1] += n; d[i + 2] += n;
+  }
+  g.putImageData(id, 0, 0);
+  if (fibers) {
+    g.globalAlpha = .12;
+    for (let k = 0; k < w * h / 900; k++) {
+      const x = rnd(k + seed) * w, y = rnd(k * 1.7 + seed) * h, a = rnd(k * 3.1 + seed) * Math.PI, l = 6 + rnd(k * 5.3) * 26;
+      g.strokeStyle = rnd(k * 7.7) > .5 ? '#FFFFFF' : '#5A4028'; g.lineWidth = .8;
+      g.beginPath(); g.moveTo(x, y); g.lineTo(x + Math.cos(a) * l, y + Math.sin(a) * l); g.stroke();
+    }
+    g.globalAlpha = .08;
+    for (let k = 0; k < 40; k++) {
+      g.fillStyle = '#6B4A2A';
+      g.beginPath(); g.arc(rnd(k * 11 + seed) * w, rnd(k * 13 + seed) * h, 1 + rnd(k * 17) * 3, 0, Math.PI * 2); g.fill();
+    }
+  }
+  return c;
+}
+function bg(color) {
+  if (!TEX['bg' + color]) TEX['bg' + color] = bakeFiber(W, H, color, color.length * 13.7 + color.charCodeAt(2));
+  ctx.drawImage(TEX['bg' + color], 0, 0);
+}
+let PAPER_PAT = null;
+function paperPattern() {
+  if (!PAPER_PAT) PAPER_PAT = ctx.createPattern(bakeFiber(256, 256, '#808080', 3.3), 'repeat');
+  return PAPER_PAT;
+}
+
+/* ---------- cut paper primitives ---------- */
+function boil(seed, amp = 1.4) {
+  return [(rnd(seed * 3.1 + BOIL * 7.3) - .5) * amp * 2, (rnd(seed * 5.7 + BOIL * 3.9) - .5) * amp * 2, (rnd(seed * 9.1 + BOIL * 1.3) - .5) * .008];
+}
+/* 多角形の辺をこまかく刻んでギザギザ（ちぎり）にする */
+function tornPts(verts, seed, rough = 4, step = 14) {
+  let area = 0;
+  for (let i = 0; i < verts.length; i++) { const a = verts[i], b = verts[(i + 1) % verts.length]; area += a[0] * b[1] - b[0] * a[1]; }
+  const sgn = area > 0 ? 1 : -1, pts = [];
+  let k = 0;
+  for (let i = 0; i < verts.length; i++) {
+    const a = verts[i], b = verts[(i + 1) % verts.length];
+    const dx = b[0] - a[0], dy = b[1] - a[1], len = Math.hypot(dx, dy) || 1;
+    const nx = dy / len * sgn, ny = -dx / len * sgn;
+    const n = Math.max(1, Math.round(len / step));
+    for (let j = 0; j < n; j++) {
+      const u = j / n, off = (rnd(seed + k * .91) - .5) * 2 * rough; k++;
+      pts.push([a[0] + dx * u + nx * off, a[1] + dy * u + ny * off, nx, ny]);
+    }
+  }
+  return pts;
+}
+const rectV = (x, y, w, h) => [[x, y], [x + w, y], [x + w, y + h], [x, y + h]];
+function circV(cx, cy, r, n = 40) { const v = []; for (let i = 0; i < n; i++) { const a = i / n * Math.PI * 2; v.push([cx + Math.cos(a) * r, cy + Math.sin(a) * r]); } return v; }
+function pathPts(pts, grow = 0) {
+  ctx.beginPath();
+  pts.forEach((p, i) => { const x = p[0] + p[2] * grow, y = p[1] + p[3] * grow; i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); });
+  ctx.closePath();
+}
+/* 紙を1枚描く: 影 → 白い繊維の縁 → 色 → 紙の質感 */
+function paper(verts, color, seed, o = {}) {
+  const pts = tornPts(verts, seed, o.rough ?? 4, o.step ?? 14);
+  ctx.save();
+  if (o.shadow !== false) {
+    ctx.shadowColor = 'rgba(60,35,10,.32)'; ctx.shadowBlur = o.blur ?? 10; ctx.shadowOffsetX = 3; ctx.shadowOffsetY = o.lift ?? 7;
+  }
+  if (o.edge !== false) { ctx.fillStyle = '#FFFDF6'; pathPts(pts, o.edgeW ?? 3.5); ctx.fill(); ctx.shadowColor = 'transparent'; }
+  ctx.fillStyle = color; pathPts(pts); ctx.fill();
+  ctx.shadowColor = 'transparent';
+  ctx.save(); pathPts(pts); ctx.clip();
+  ctx.globalCompositeOperation = 'multiply'; ctx.globalAlpha = o.tex ?? .22;
+  ctx.fillStyle = paperPattern(); ctx.fillRect(-2000, -2000, 5000, 6000);
+  ctx.restore();
+  ctx.restore();
+  return pts;
+}
+/* 輪郭がはっきりした切り抜き（ハサミで切った紙） */
+function cutout(drawPath, color, o = {}) {
+  ctx.save();
+  ctx.shadowColor = 'rgba(60,35,10,.3)'; ctx.shadowBlur = 8; ctx.shadowOffsetX = 3; ctx.shadowOffsetY = 6;
+  drawPath(); ctx.lineJoin = 'round'; ctx.strokeStyle = '#FFFDF6'; ctx.lineWidth = o.edge ?? 9; ctx.stroke();
+  ctx.shadowColor = 'transparent';
+  drawPath(); ctx.fillStyle = color; ctx.fill();
+  ctx.save(); drawPath(); ctx.clip(); ctx.globalCompositeOperation = 'multiply'; ctx.globalAlpha = .2;
+  ctx.fillStyle = paperPattern(); ctx.fillRect(-2000, -2000, 5000, 6000); ctx.restore();
+  ctx.restore();
+}
+/* 描画中に出てきた文字を集める（フォント読み込み用） */
+const GLYPHS = new Set();
+function txt(s, x, y, size, font, color, o = {}) {
+  for (const ch of s) GLYPHS.add(ch);
+  ctx.save();
+  ctx.font = (o.weight || '') + ' ' + size + 'px ' + font;
+  ctx.fillStyle = color; ctx.textAlign = o.align || 'center'; ctx.textBaseline = 'middle';
+  ctx.letterSpacing = (o.ls || 0) + 'px';
+  ctx.fillText(s, x, y); ctx.restore();
+}
+function tw(s, size, font, weight = '', ls = 0) {
+  ctx.save(); ctx.font = weight + ' ' + size + 'px ' + font; ctx.letterSpacing = ls + 'px';
+  const w = ctx.measureText(s).width; ctx.restore(); return w;
+}
+/* 配置ヘルパ: 登場アニメ（落ちてきて弾む）＋ゆらぎ */
+function place(x, y, p, seed, rot, fn, o = {}) {
+  if (p <= 0) return;
+  const [bx, by, br] = boil(seed, o.boil ?? 1.4);
+  const s = o.noScale ? 1 : outBack(clamp(p));
+  const dy = (o.drop ?? 60) * (1 - outCubic(clamp(p)));
+  ctx.save(); ctx.translate(x + bx, y + by - dy); ctx.rotate(rot + br + (o.spin ?? .25) * (1 - clamp(p))); ctx.scale(s, s);
+  fn(); ctx.restore();
+}
+/* ちぎった紙の文字タイル（脅迫状風） */
+const TILE_BG = [P.paper, P.gold, P.sky, P.pink, P.lime, P.cream, P.orange];
+function tile(ch, size, bgc, fg, seed) {
+  const w = size * 1.18, h = size * 1.3;
+  paper(rectV(-w / 2, -h / 2, w, h), bgc, seed, { rough: 3, step: 12 });
+  txt(ch, 0, size * .04, size, TITLE, fg);
+}
+function tileWord(word, cx, cy, size, b0, gap, seed, o = {}) {
+  const chars = [...word], wEach = size * 1.22;
+  const x0 = cx - (chars.length - 1) * wEach / 2;
+  chars.forEach((ch, i) => {
+    const sd = seed + i * 17;
+    const p = ent(b0 + i * gap, .6, o.sfx ?? 'tile');
+    const bgc = o.bgs ? o.bgs[i % o.bgs.length] : TILE_BG[(i + seed) % TILE_BG.length];
+    const fg = o.fg ? o.fg : (bgc === P.paper || bgc === P.cream || bgc === P.gold || bgc === P.lime) ? P.ink : '#FFFFFF';
+    place(x0 + i * wEach, cy + (rnd(sd) - .5) * 18, p, sd, (rnd(sd * 2) - .5) * .22, () => tile(ch, size, bgc, fg, sd), { drop: 120 });
+  });
+}
+/* 紙の帯に文字（キャプション） */
+function strip(s, x, y, size, b0, seed, o = {}) {
+  const w = tw(s, size, BODY, 900) + size * .9, h = size * 1.55;
+  const p = ent(b0, .6, o.sfx ?? 'paper');
+  const ax = o.align === 'left' ? w / 2 : o.align === 'right' ? -w / 2 : 0;
+  place(x + ax, y, p, seed, o.rot ?? (rnd(seed) - .5) * .06, () => {
+    paper(rectV(-w / 2, -h / 2, w, h), o.bg || P.paper, seed, { rough: 3.5 });
+    txt(s, 0, size * .05, size, BODY, o.fg || P.ink, { weight: 900 });
+  }, { drop: 30, spin: .08 });
+}
+function tape(x, y, w, rot, color = 'rgba(242,193,78,.72)', seed = 1) {
+  ctx.save(); ctx.translate(x, y); ctx.rotate(rot);
+  const h = 42, v = [];
+  for (let i = 0; i <= 6; i++) v.push([-w / 2 + (i % 2 ? 5 : -2), -h / 2 + i * h / 6]);
+  const v2 = []; for (let i = 6; i >= 0; i--) v2.push([w / 2 + (i % 2 ? -5 : 2), -h / 2 + i * h / 6]);
+  ctx.beginPath(); [...v, ...v2].forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])); ctx.closePath();
+  ctx.fillStyle = color; ctx.fill();
+  ctx.globalAlpha = .25; ctx.fillStyle = '#FFFFFF'; ctx.fillRect(-w / 2, -h / 2 + 4, w, 6);
+  ctx.restore();
+}
+/* ポラロイド写真 */
+const IMG = {};
+function polaroid(img, w, h, label, seed) {
+  const pad = 22, bottom = label ? 86 : 30;
+  ctx.save();
+  ctx.shadowColor = 'rgba(60,35,10,.35)'; ctx.shadowBlur = 14; ctx.shadowOffsetY = 9;
+  ctx.fillStyle = '#FFFDF8'; ctx.fillRect(-w / 2 - pad, -h / 2 - pad, w + pad * 2, h + pad + bottom);
+  ctx.restore();
+  if (img) {
+    ctx.save(); ctx.beginPath(); ctx.rect(-w / 2, -h / 2, w, h); ctx.clip();
+    const s = Math.max(w / img.width, h / img.height);
+    ctx.drawImage(img, -img.width * s / 2, -img.height * s / 2, img.width * s, img.height * s); ctx.restore();
+  }
+  if (label) txt(label, 0, h / 2 + 46, 40, BODY, P.ink, { weight: 900 });
+  tape(0, -h / 2 - pad + 2, 170, (rnd(seed) - .5) * .3, 'rgba(124,200,234,.7)');
+}
+
+/* ---------- cut-out characters & props ---------- */
+/* ロゴと同じ「両手をあげた子ども」の切り絵 */
+function kid(s, color, seed, wave = 0) {
+  const a = Math.sin(wave) * .18;
+  cutout(() => {
+    ctx.beginPath();
+    ctx.moveTo(-34 * s, -60 * s);
+    ctx.lineTo(-74 * s, (-118 + a * 60) * s); ctx.lineTo(-56 * s, (-128 + a * 60) * s); ctx.lineTo(-24 * s, -84 * s);
+    ctx.lineTo(24 * s, -84 * s);
+    ctx.lineTo(56 * s, (-128 - a * 60) * s); ctx.lineTo(74 * s, (-118 - a * 60) * s); ctx.lineTo(34 * s, -60 * s);
+    ctx.lineTo(28 * s, 0); ctx.lineTo(-28 * s, 0); ctx.closePath();
+  }, color);
+  cutout(() => { ctx.beginPath(); ctx.arc(0, -116 * s, 30 * s, 0, Math.PI * 2); }, color);
+  ctx.fillStyle = P.ink;
+  ctx.beginPath(); ctx.arc(-9 * s, -118 * s, 3.2 * s, 0, 7); ctx.arc(9 * s, -118 * s, 3.2 * s, 0, 7); ctx.fill();
+  ctx.strokeStyle = P.ink; ctx.lineWidth = 3 * s; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.arc(0, -110 * s, 8 * s, .2, Math.PI - .2); ctx.stroke();
+}
+/* 手をつなぐ人（高さで世代を表す） */
+function person(s, color, seed, hair = P.ink) {
+  cutout(() => {
+    ctx.beginPath();
+    ctx.moveTo(-32 * s, -70 * s); ctx.lineTo(32 * s, -70 * s); ctx.lineTo(40 * s, 0); ctx.lineTo(-40 * s, 0); ctx.closePath();
+  }, color);
+  cutout(() => { ctx.beginPath(); ctx.arc(0, -98 * s, 28 * s, 0, Math.PI * 2); }, '#F6D2B0');
+  ctx.fillStyle = hair; ctx.beginPath(); ctx.arc(0, -104 * s, 28 * s, Math.PI * 1.05, Math.PI * 1.95); ctx.fill();
+  ctx.fillStyle = P.ink;
+  ctx.beginPath(); ctx.arc(-9 * s, -96 * s, 3 * s, 0, 7); ctx.arc(9 * s, -96 * s, 3 * s, 0, 7); ctx.fill();
+}
+function note(s, color) {
+  cutout(() => {
+    ctx.beginPath();
+    ctx.ellipse(-14 * s, 20 * s, 22 * s, 16 * s, -.4, 0, Math.PI * 2);
+    ctx.moveTo(4 * s, 16 * s); ctx.lineTo(4 * s, -58 * s); ctx.lineTo(34 * s, -40 * s); ctx.lineTo(34 * s, -26 * s); ctx.lineTo(14 * s, -38 * s); ctx.lineTo(14 * s, 16 * s); ctx.closePath();
+  }, color, { edge: 7 });
+}
+function tree(x, y, s, seed, col = P.leaf) {
+  paper(rectV(x - 7 * s, y - 70 * s, 14 * s, 70 * s), P.brown, seed, { rough: 1.5, edge: false, lift: 3 });
+  paper(circV(x, y - 100 * s, 52 * s, 30), col, seed + 1, { rough: 5 });
+}
+function tent(x, y, s, color, seed) {
+  paper(rectV(x - 70 * s, y - 70 * s, 8 * s, 70 * s), '#6B6B6B', seed, { rough: 1, edge: false, lift: 2 });
+  paper(rectV(x + 62 * s, y - 70 * s, 8 * s, 70 * s), '#6B6B6B', seed + 1, { rough: 1, edge: false, lift: 2 });
+  paper(rectV(x - 60 * s, y - 36 * s, 120 * s, 36 * s), P.card, seed + 2, { rough: 2 });
+  paper([[x, y - 150 * s], [x + 95 * s, y - 88 * s], [x - 95 * s, y - 88 * s]], color, seed + 3, { rough: 3 });
+  paper(rectV(x - 95 * s, y - 90 * s, 190 * s, 24 * s), color, seed + 4, { rough: 2.5 });
+}
+function house(x, y, s, color, seed) {
+  paper(rectV(x - 55 * s, y - 80 * s, 110 * s, 80 * s), color, seed, { rough: 2 });
+  paper([[x, y - 140 * s], [x + 72 * s, y - 76 * s], [x - 72 * s, y - 76 * s]], P.red, seed + 1, { rough: 2.5 });
+  ctx.fillStyle = '#FFE9A8'; ctx.fillRect(x - 30 * s, y - 60 * s, 22 * s, 22 * s); ctx.fillRect(x + 8 * s, y - 60 * s, 22 * s, 22 * s);
+}
+function truck(s, seed) {
+  paper(rectV(-150 * s, -130 * s, 210 * s, 110 * s), P.paper, seed, { rough: 2.5 });
+  paper(rectV(60 * s, -95 * s, 80 * s, 75 * s), P.gold, seed + 1, { rough: 2.5 });
+  paper(rectV(-130 * s, -110 * s, 120 * s, 44 * s), P.sky, seed + 2, { rough: 2, edge: false, lift: 2 });
+  paper(rectV(76 * s, -84 * s, 44 * s, 30 * s), '#BFE3F5', seed + 3, { rough: 1.5, edge: false, lift: 2 });
+  paper(circV(-90 * s, -18 * s, 26 * s, 20), P.ink, seed + 4, { rough: 2 });
+  paper(circV(90 * s, -18 * s, 26 * s, 20), P.ink, seed + 5, { rough: 2 });
+  txt('キッチンカー', -45 * s, -140 * s, 30 * s, BODY, P.ink, { weight: 900 });
+}
+/* 実際のステージにある「段ボールの文字看板」を再現 */
+const BANNER = 'カオスやストリート';
+const BANNER_COL = [P.orange, P.leaf, P.blue, P.red, P.leaf, P.orange, P.blue, P.red, P.leaf];
+function stage(cx, top, w, h, b0, seed) {
+  const p = ent(b0, .8, 'paper');
+  place(cx, top, p, seed, 0, () => {
+    paper(rectV(-w / 2, 0, w, h), P.stage, seed, { rough: 3 });
+    paper(rectV(-w / 2 - 20, -18, w + 40, 26), '#57504C', seed + 1, { rough: 2 });
+  }, { drop: -80, spin: 0 });
+  const n = BANNER.length, tw_ = Math.min(96, (w - 40) / n);
+  [...BANNER].forEach((ch, i) => {
+    const pp = ent(b0 + 1 + i * .25, .5, 'tile');
+    place(cx - (n - 1) * tw_ / 2 + i * tw_, top + h * .55, pp, seed + 40 + i, (rnd(seed + i) - .5) * .16, () => {
+      paper(rectV(-tw_ * .46, -tw_ * .5, tw_ * .92, tw_), P.card, seed + 60 + i, { rough: 2, lift: 4 });
+      txt(ch, 0, 2, tw_ * .62, TITLE, BANNER_COL[i]);
+    }, { drop: 40 });
+  });
+}
+/* 公園（山・地面・木） */
+function park(b0, seed, o = {}) {
+  const pm = ent(b0, .9, 'paper');
+  place(0, 0, pm, seed, 0, () => {
+    paper([[-60, 1010], [120, 820], [290, 900], [470, 760], [700, 880], [880, 790], [1140, 930], [1140, 1140], [-60, 1140]], '#8FBF7A', seed, { rough: 7 });
+    paper([[-60, 1060], [200, 940], [420, 1000], [640, 900], [900, 990], [1140, 950], [1140, 1160], [-60, 1160]], P.leaf, seed + 1, { rough: 7 });
+  }, { drop: -140, spin: 0, noScale: true });
+  const pg = ent(b0 + .5, .8, 'paper');
+  place(0, 0, pg, seed + 2, 0, () => paper(rectV(-60, 1120, 1200, 900), o.ground || '#CDB27F', seed + 2, { rough: 8 }), { drop: -200, spin: 0, noScale: true });
+  const ps = ent(b0 + 1, .7, 'pop');
+  place(o.sunX ?? 860, o.sunY ?? 640, ps, seed + 3, 0, () => paper(circV(0, 0, 70, 36), P.gold, seed + 3, { rough: 4 }));
+  (o.trees || [[120, 1150, .9], [300, 1130, .7], [800, 1135, .75], [970, 1150, .95]]).forEach((t, i) => {
+    const pt = ent(b0 + 1.5 + i * .5, .6, 'pop');
+    place(t[0], t[1], pt, seed + 10 + i, 0, () => tree(0, 0, t[2], seed + 10 + i), { drop: -40, spin: .1 });
+  });
+}
+function chapter(label, num, b0, seed) {
+  const p = ent(b0, .5, null);
+  place(70 + 150, 250, p, seed, -.04, () => {
+    paper(rectV(-150, -34, 300, 68), P.ink, seed, { rough: 2.5 });
+    txt(num + '  ' + label, 0, 2, 32, BODY, P.paper, { weight: 900 });
+  }, { drop: 20, spin: 0 });
+}
+
+/* =========================================================
+   SCENES  (beat 単位。1拍 = 0.625秒、1小節 = 2.5秒)
+   ========================================================= */
+const SC = [
+  { b: 0, e: 8, fn: sOpen },
+  { b: 8, e: 16, fn: sBegin },
+  { b: 16, e: 28, fn: sStage },
+  { b: 28, e: 36, fn: sMarche },
+  { b: 36, e: 48, fn: sGen },
+  { b: 48, e: 56, fn: sGrowth },
+  { b: 56, e: 64, fn: sPlace },
+  { b: 64, e: 76, fn: sEnd },
+];
+
+/* 0. オープニング: カオスやストリートって なに？ */
+function sOpen() {
+  bg(P.kraft);
+  for (let i = 0; i < 14; i++) {
+    const p = ent(rnd(i) * 1.5, .6, i % 4 ? null : 'paper');
+    const x = 60 + rnd(i + 3) * 960, y = 300 + rnd(i + 5) * 1300;
+    place(x, y, p, 500 + i, rnd(i + 9) * 3, () => paper(rectV(-24, -16, 48, 32), TILE_BG[i % TILE_BG.length], 500 + i, { rough: 3, lift: 3 }), { drop: 200 });
+  }
+  tileWord('カオスや', W / 2, 640, 150, .5, .25, 1);
+  tileWord('ストリートって', W / 2, 850, 118, 1.5, .25, 20);
+  tileWord('なに？', W / 2, 1090, 180, 3.5, .25, 40, { bgs: [P.red, P.blue, P.gold] });
+  const ps = ent(5, .4, 'stamp');
+  place(830, 1330, ps, 77, -.22, () => {
+    ctx.save(); ctx.globalAlpha = .9;
+    ctx.strokeStyle = P.red; ctx.lineWidth = 10; ctx.beginPath(); ctx.arc(0, 0, 105, 0, Math.PI * 2); ctx.stroke();
+    ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(0, 0, 88, 0, Math.PI * 2); ctx.stroke();
+    txt('第8回', 0, 8, 62, TITLE, P.red); ctx.restore();
+  }, { drop: -30, spin: 0 });
+  strip('KAOSUYA STREET MUSIC FESTIVAL 2027', W / 2 - 60, 1480, 30, 6, 88, { bg: P.ink, fg: P.paper });
+}
+
+/* 1. はじまり: 2020年、下関・安岡の公園で */
+function sBegin() {
+  bg(P.cream);
+  chapter('はじまり', '#1', 8, 101);
+  park(8.5, 110, { sunX: 150, sunY: 700 });
+  stage(W / 2, 1010, 600, 190, 11, 130);
+  strip('はじまりは', 300, 400, 58, 8.5, 150, { rot: -.04 });
+  tileWord('2020年', 620, 530, 110, 9, .25, 160, { bgs: [P.gold, P.gold, P.gold, P.gold, P.red] });
+  // 実際のステージ写真（段ボール看板）
+  const pp = ent(13.5, .6, 'paper');
+  place(790, 1390, pp, 170, .07, () => polaroid(IMG.p9, 330, 230, '実際のステージ', 171), { drop: 80 });
+  strip('下関・安岡の公園で', 70, 1290, 50, 12.5, 180, { align: 'left', rot: .03 });
+}
+
+/* 2. ステージ: 子どもたちに、挑戦できるステージを。 */
+function sStage() {
+  bg(P.kraft);
+  chapter('ステージ', '#2', 16, 201);
+  // スポットライト
+  const sp = ent(17.5, .8, null);
+  if (sp > 0) {
+    ctx.save(); ctx.globalAlpha = .35 * sp; ctx.fillStyle = '#FFF6D8';
+    ctx.beginPath(); ctx.moveTo(420, 300); ctx.lineTo(660, 300); ctx.lineTo(900, 1500); ctx.lineTo(180, 1500); ctx.closePath(); ctx.fill(); ctx.restore();
+  }
+  stage(W / 2, 1400, 900, 300, 16, 210);
+  strip('いちばんの目的は——', 90, 380, 54, 16.5, 220, { align: 'left', rot: -.03 });
+  // 子どもたちがステージへ
+  const kids = [[330, 1400, P.leaf, 18], [540, 1400, P.sky, 18.5], [750, 1400, P.gold, 19]];
+  kids.forEach((k, i) => {
+    const p = ent(k[3], .6, 'bounce');
+    const hop = Math.abs(Math.sin((T - k[3] * B) * Math.PI / B)) * 18 * (T > k[3] * B ? 1 : 0);
+    place(k[0], k[1] - hop, p, 230 + i, 0, () => kid(1.25, k[2], 230 + i, T * 4 + i), { drop: -260, spin: 0 });
+  });
+  // 音符
+  for (let i = 0; i < 6; i++) {
+    const b0 = 20 + i * .5, p = ent(b0, .5, 'pop');
+    if (p <= 0) continue;
+    const up = Math.min(since(b0), 3) * 60;
+    place(200 + i * 140 + (rnd(i) - .5) * 60, 1040 - up - rnd(i + 2) * 120, p, 240 + i, (rnd(i + 4) - .5) * .5, () => note(1.3, [P.red, P.blue, P.leaf, P.orange, P.pink, P.gold][i]));
+  }
+  // メッセージ（LPの言葉）
+  strip('子どもたちに、', W / 2, 540, 70, 22, 250, { rot: -.02 });
+  const p1 = ent(22.5, .6, 'paper');
+  place(W / 2, 680, p1, 251, .02, () => {
+    const w1 = tw('挑戦', 88, TITLE) + 60, w2 = tw('できる', 70, BODY, 900) + 40;
+    paper(rectV(-(w1 + w2) / 2, -62, w1, 124), P.red, 252, { rough: 3.5 });
+    txt('挑戦', -(w1 + w2) / 2 + w1 / 2, 4, 88, TITLE, '#FFFFFF');
+    paper(rectV(-(w1 + w2) / 2 + w1 - 6, -52, w2, 104), P.paper, 253, { rough: 3.5 });
+    txt('できる', -(w1 + w2) / 2 + w1 - 6 + w2 / 2, 3, 70, BODY, P.ink, { weight: 900 });
+  }, { drop: 30, spin: .06 });
+  strip('ステージを。', W / 2, 820, 70, 23, 254, { rot: .03, bg: P.gold });
+  // 出演者タグ
+  strip('地元ミュージシャン', 70, 960, 34, 25, 260, { align: 'left', bg: P.sky, rot: -.05 });
+  strip('高校生バンド', 560, 940, 34, 25.5, 261, { align: 'left', bg: P.pink, rot: .04 });
+  strip('吹奏楽部', 700, 1030, 34, 26, 262, { align: 'left', bg: P.lime, rot: -.03 });
+}
+
+/* 3. マルシェ: 50店以上 */
+function sMarche() {
+  bg(P.mint);
+  chapter('マルシェ', '#3', 28, 301);
+  strip('マルシェも いっしょに', W / 2, 390, 60, 28, 310);
+  const grid = [];
+  for (let r = 0; r < 3; r++) for (let c = 0; c < 3; c++) grid.push([200 + c * 340 + (r % 2 ? 40 : -20), 700 + r * 230]);
+  grid.forEach((g, i) => {
+    const p = ent(28.5 + i * .25, .5, 'pop');
+    place(g[0], g[1], p, 320 + i, (rnd(i) - .5) * .1, () => tent(0, 0, 1.15, i % 2 ? P.red : P.leaf, 320 + i), { drop: 90 });
+  });
+  const ps = ent(32, .45, 'stamp');
+  place(W / 2, 1340, ps, 340, -.05, () => {
+    paper(rectV(-300, -110, 600, 220), P.gold, 341, { rough: 5 });
+    txt('50', -150, 4, 150, TITLE, P.red);
+    txt('店以上！', 100, 12, 72, BODY, P.ink, { weight: 900 });
+  }, { drop: -20, spin: 0 });
+  const pt = ent(33.5, .8, 'paper');
+  const tx = lerp(W + 300, 800, outCubic(pt));
+  if (pt > 0) place(tx, 1600, 1, 350, 0, () => truck(1, 351), { drop: 0, spin: 0, noScale: true });
+}
+
+/* 4. 3世代: 子どもからシニアまで */
+function sGen() {
+  bg('#EAF3DC');
+  chapter('3世代', '#4', 36, 401);
+  const pics = [['p8', 310, 720, -.08, 'みんなで', 36.5], ['p11', 770, 820, .07, 'らくがき', 37.5], ['p21', 400, 1110, .04, '段ボール広場', 38.5]];
+  pics.forEach((q, i) => {
+    const p = ent(q[5], .6, 'paper');
+    place(q[1], q[2], p, 410 + i, q[3], () => polaroid(IMG[q[0]], 400, 290, q[4], 411 + i), { drop: 120 });
+  });
+  strip('子どもから シニアまで', W / 2, 360, 60, 40, 420, { rot: -.02 });
+  strip('3世代が つながる', W / 2, 480, 60, 41, 421, { rot: .03, bg: P.gold });
+  // 手をつなぐ3世代（高さの違う3人）
+  const walk = clamp(since(42) / (5 * B));
+  const gx = lerp(-300, 760, outCubic(walk));
+  const people = [[-110, 1.05, P.blue, '#DDDDDD'], [0, .95, P.orange, P.ink], [100, .68, P.pink, P.brown]];
+  if (since(42) > 0) {
+    cue('bounce', 42);
+    ctx.save(); ctx.strokeStyle = '#F6D2B0'; ctx.lineWidth = 10; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(gx - 80, 1640 - 60); ctx.lineTo(gx + 70, 1640 - 50); ctx.stroke(); ctx.restore();
+    people.forEach((pp, i) => {
+      const bob = Math.abs(Math.sin(T * 7 + i)) * 10;
+      place(gx + pp[0], 1640 - bob, 1, 430 + i, 0, () => person(pp[1] * 1.3, pp[2], 430 + i, pp[3]), { noScale: true, drop: 0, spin: 0 });
+    });
+  }
+}
+
+/* 5. あゆみ: 来場者の推移 */
+const GROW = [[800, '2020'], [1200, '2021'], [2000, '2022'], [3000, '2023'], [3500, '2024'], [4000, '2025'], [5000, '2026'], [6000, '2027']];
+function sGrowth() {
+  bg(P.kraft);
+  chapter('あゆみ', '#5', 48, 501);
+  strip('来場者は 7年で', W / 2, 390, 60, 48, 510);
+  tileWord('800→5000', W / 2, 540, 92, 49, .25, 520, { bgs: [P.paper, P.paper, P.paper, P.red, P.gold, P.gold, P.gold, P.gold] });
+  strip('人', 930, 640, 50, 51, 525, { bg: P.paper });
+  const x0 = 110, cw = 860, base = 1380, hmax = 620, slot = cw / 8;
+  paper(rectV(x0 - 20, base, cw + 40, 18), P.ink, 530, { rough: 2 });
+  GROW.forEach((g, i) => {
+    const b0 = 48.5 + i * .5, p = ent(b0, .6, i === 7 ? 'stamp' : 'tile');
+    if (p <= 0) return;
+    const h = g[0] / 6000 * hmax * outBack(p), x = x0 + i * slot + 12, w = slot - 24;
+    if (i === 7) {
+      ctx.save(); ctx.setLineDash([14, 10]); ctx.strokeStyle = P.red; ctx.lineWidth = 5;
+      ctx.strokeRect(x, base - h, w, h); ctx.restore();
+      txt('目標', x + w / 2, base - h + 44, 34, BODY, P.red, { weight: 900 });
+    } else {
+      paper(rectV(x, base - h, w, h), [P.lime, P.leaf, P.lime, P.leaf, P.lime, P.leaf, P.gold][i], 540 + i, { rough: 3 });
+    }
+    if (p > .5) {
+      txt(g[0].toLocaleString('en-US'), x + w / 2, base - h - 30, 30, TITLE, i === 7 ? P.red : P.ink);
+      txt(g[1], x + w / 2, base + 50, 26, BODY, P.ink, { weight: 900 });
+    }
+  });
+  strip('※2日間合計。2020〜2026は実績、2027は目標', W / 2, 1470, 28, 53, 560, { bg: P.paper });
+}
+
+/* 6. いばしょ: 地域の居場所 → この景色を、一緒に守っていただけませんか。 */
+function sPlace() {
+  bg(P.cream);
+  chapter('いばしょ', '#6', 56, 601);
+  park(56, 610, { trees: [[90, 1150, .8], [990, 1150, .85]], sunX: 930, sunY: 780 });
+  [[200, 1110, P.paper], [880, 1105, '#FFE3C2']].forEach((h, i) => {
+    const p = ent(57 + i * .25, .5, 'pop');
+    place(h[0], h[1], p, 620 + i, 0, () => house(0, 0, .9, h[2], 620 + i), { drop: -40 });
+  });
+  stage(W / 2, 1050, 330, 110, 57, 630);
+  [[330, 1250, P.leaf], [770, 1250, P.red]].forEach((t, i) => {
+    const p = ent(58 + i * .25, .5, 'pop');
+    place(t[0], t[1], p, 640 + i, 0, () => tent(0, 0, .8, t[2], 640 + i), { drop: 40 });
+  });
+  // 人が集まってくる
+  for (let i = 0; i < 12; i++) {
+    const p = ent(58.5 + i * .125, .5, i % 3 ? null : 'pop');
+    const x = 130 + (i % 6) * 165 + (rnd(i) - .5) * 40, y = 1380 + Math.floor(i / 6) * 110 + rnd(i + 1) * 20;
+    const cols = [P.blue, P.orange, P.pink, P.leaf, P.gold, P.sky];
+    place(x, y, p, 650 + i, 0, () => person(.62 + rnd(i + 2) * .25, cols[i % 6], 650 + i), { drop: 60, spin: .05 });
+  }
+  strip('つくりたいのは、', 90, 380, 56, 58, 670, { align: 'left', rot: -.03 });
+  tileWord('地域の居場所。', W / 2, 520, 110, 58.5, .25, 680, { bgs: [P.paper, P.paper, P.gold, P.gold, P.gold, P.gold, P.paper] });
+  // 余韻: ハートの紙片
+  for (let i = 0; i < 5; i++) {
+    const b0 = 60.5 + i * .5, p = ent(b0, .6, null);
+    if (p <= 0) continue;
+    const up = since(b0) * 40;
+    place(160 + i * 190, 1000 - up, p, 690 + i, (rnd(i) - .5) * .4, () => cutout(() => {
+      ctx.beginPath(); ctx.moveTo(0, 18); ctx.bezierCurveTo(-40, -8, -22, -40, 0, -20); ctx.bezierCurveTo(22, -40, 40, -8, 0, 18); ctx.closePath();
+    }, [P.pink, P.red, P.orange][i % 3], { edge: 6 }));
+  }
+  strip('この景色を、', 90, 700, 50, 61, 695, { align: 'left', bg: P.ink, fg: P.paper, rot: -.02 });
+  strip('一緒に守っていただけませんか。', 90, 800, 50, 62, 696, { align: 'left', bg: P.ink, fg: P.paper, rot: .02 });
+}
+
+/* 7. エンドカード */
+function sEnd() {
+  bg(P.cream);
+  for (let i = 0; i < 18; i++) {
+    const p = ent(64 + rnd(i) * 2, .6, null);
+    const x = 40 + rnd(i + 3) * 1000, y = 200 + rnd(i + 5) * 1600;
+    if (Math.abs(x - W / 2) < 330 && y > 330 && y < 1560) continue;
+    place(x, y, p, 700 + i, rnd(i + 9) * 3, () => paper(rectV(-20, -13, 40, 26), TILE_BG[i % TILE_BG.length], 700 + i, { rough: 3, lift: 3 }), { drop: 200 });
+  }
+  const pl = ent(64, .8, 'paper');
+  place(W / 2, 640, pl, 710, -.03, () => {
+    paper(rectV(-290, -290, 580, 560), P.paper, 711, { rough: 6 });
+    if (IMG.logo) ctx.drawImage(IMG.logo, -265, -275, 530, 530);
+    tape(-230, -270, 150, -.6, 'rgba(242,160,180,.75)'); tape(230, -270, 150, .6, 'rgba(124,200,234,.75)');
+  }, { drop: 140 });
+  tileWord('協賛企業', W / 2, 1040, 120, 66, .25, 720, { bgs: [P.leaf, P.green, P.leaf, P.green], fg: '#FFFFFF' });
+  tileWord('募集中！', W / 2, 1200, 120, 67, .25, 730, { bgs: [P.gold, P.red, P.gold, P.red] });
+  strip('応募締切　2026年11月15日', W / 2, 1345, 46, 69, 740, { bg: P.ink, fg: P.paper });
+  strip('2027.3.13(土)・14(日)　下関 安岡地区公園', W / 2, 1422, 34, 70, 741, { bg: P.paper });
+  strip('kaosuya.yamanisi.co.jp', W / 2, 1492, 34, 71, 742, { bg: P.sky });
+}
+
+/* ---------- transitions: 紙を1枚すべらせてページをめくる ---------- */
+function transition(t) {
+  const cols = [P.gold, P.sky, P.pink, P.lime, P.orange, P.leaf, P.red];
+  SC.slice(1).forEach((sc, k) => {
+    const tb = sc.b * B, d = t - tb;
+    if (d < -.42 || d > .42) return;
+    cue('whoosh', sc.b - .5);
+    const x = d < 0 ? lerp(W + 100, -60, inOut(clamp((d + .42) / .42))) : lerp(-60, -W - 300, inOut(clamp(d / .42)));
+    ctx.save(); ctx.translate(x, 0); ctx.rotate(-.03);
+    paper(rectV(0, -200, W + 220, H + 400), cols[k % cols.length], 900 + k, { rough: 12, step: 22 });
+    tape(W * .5, 700, 220, .3, 'rgba(255,255,255,.55)');
+    ctx.restore();
+  });
+}
+
+function render(t) {
+  t = clamp(t, 0, DUR - 1e-4);
+  T = Math.round(t * 12) / 12;           // コマ撮り
+  BOIL = Math.floor(t * 6);
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+  const beat = T / B;
+  let sc = SC[0];
+  for (const s of SC) if (beat >= s.b) sc = s;
+  // ゆっくり寄るカメラ
+  const prog = clamp((beat - sc.b) / (sc.e - sc.b));
+  const z = 1 + .025 * prog;
+  ctx.save(); ctx.translate(W / 2, H / 2); ctx.scale(z, z); ctx.translate(-W / 2, -H / 2);
+  sc.fn();
+  ctx.restore();
+  transition(t);
+  // 周辺減光（あたたかい色）
+  const v = ctx.createRadialGradient(W / 2, H / 2, H * .3, W / 2, H / 2, H * .75);
+  v.addColorStop(0, 'rgba(60,35,10,0)'); v.addColorStop(1, 'rgba(60,35,10,.22)');
+  ctx.fillStyle = v; ctx.fillRect(0, 0, W, H);
+  // 最後の0.4秒はフェードアウト
+  const fo = clamp((t - (DUR - .4)) / .4);
+  if (fo > 0) { ctx.fillStyle = 'rgba(43,38,32,' + fo + ')'; ctx.fillRect(0, 0, W, H); }
+}
+
+/* ---------- boot ---------- */
+function loadImages() {
+  const list = { p8: 'img/p8.jpg', p9: 'img/p9.jpg', p11: 'img/p11.jpg', p21: 'img/p21.jpg', logo: '../showreel/img/logo.png' };
+  return Promise.all(Object.entries(list).map(([k, src]) => new Promise(res => {
+    const im = new Image(); im.onload = () => { IMG[k] = im; res(); }; im.onerror = () => res(); im.src = src;
+  })));
+}
+async function loadFonts() {
+  // 全フレームを一度なめて、使う文字だけを集めてからフォントを読み込む
+  for (let t = 0; t < DUR; t += .25) render(t);
+  const s = [...GLYPHS].join('') + '0123456789';
+  await Promise.all([
+    document.fonts.load('40px "Mochiy Pop One"', s),
+    document.fonts.load('900 40px "Zen Maru Gothic"', s),
+    document.fonts.load('700 40px "Zen Maru Gothic"', s),
+  ]).catch(() => {});
+  await document.fonts.ready;
+}
+
+const au = document.getElementById('au'), btn = document.getElementById('play');
+let playing = false, t0 = 0, ready = false;
+const now = () => (!au.paused && au.readyState >= 2 && !au.error) ? au.currentTime : (performance.now() - t0) / 1000;
+function loop() {
+  if (!playing) return;
+  const t = now();
+  if (t >= DUR) { playing = false; render(DUR - .5); btn.classList.remove('hide'); return; }
+  render(t); requestAnimationFrame(loop);
+}
+function start() {
+  if (!ready) return;
+  btn.classList.add('hide'); playing = true; t0 = performance.now();
+  try { au.currentTime = 0; const pr = au.play(); if (pr) pr.catch(() => {}); } catch (e) {}
+  requestAnimationFrame(loop);
+}
+function pause() { playing = false; try { au.pause(); } catch (e) {} btn.classList.remove('hide'); }
+btn.addEventListener('click', start);
+cv.addEventListener('click', () => playing ? pause() : start());
+document.addEventListener('keydown', e => { if (e.code === 'Space') { e.preventDefault(); playing ? pause() : start(); } });
+
+window.renderAt = render;
+window.getCues = () => [...CUES.values()].sort((a, b) => a.t - b.t);
+window.__ready = (async () => {
+  if (/[?&]render/.test(location.search)) document.body.classList.add('render');
+  await loadImages();
+  await loadFonts();
+  ready = true;
+  render(44);
+  return true;
+})();
+</script>
+</body>
+</html>
