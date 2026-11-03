@@ -324,6 +324,10 @@ section{padding:90px 24px;position:relative}
 .slot-gauge-fill.hot{background:linear-gradient(90deg,#FF5252,#D32F2F)!important;animation:gaugePulse 1.2s ease infinite}
 @keyframes gaugePulse{0%,100%{opacity:1}50%{opacity:.6}}
 .slot-gauge-txt{font-size:10px;color:rgba(255,255,255,.55);margin-top:6px;text-align:center;letter-spacing:.3px}
+.pc-full-msg{display:none;margin-top:18px;padding:14px 12px;border:1px dashed var(--gold);border-radius:10px;font-size:12.5px;line-height:1.8;color:var(--gold);text-align:center}
+.pc.full .btn-stripe,.pc.full .btn-bank,.pc.full .pay-divider{display:none}
+.pc.full .pc-full-msg{display:block}
+.pc.full .slot-gauge-txt{color:var(--gold);font-weight:700}
 
 /* ===== CHEER ===== */
 #cheer{background:linear-gradient(rgba(247,255,242,.80),rgba(255,255,255,.84)),url('photos/gallery3.jpg') center/cover no-repeat}
@@ -944,12 +948,14 @@ footer .related-sites__arrow{width:18px;height:18px;flex:0 0 18px;color:var(--re
         <img class="testi-logo" src="photos/bestlife_logo.png" alt="有限会社ベストライフ">
         <div class="testi-company">介護事業の有限会社ベストライフ</div>
       </div>
-      <div class="testi-card">
+      <div class="testi-card pt-voice">
+        <span class="testi-badge">PLATINUM 2027</span>
         <p class="testi-body">「地域住民と共に考え、育てるまちづくり」は、当社の理念のひとつでもあります。子どもたちが生き生きとステージに立ち、未来への希望を感じられることを、毎年楽しみにしています。</p>
         <img class="testi-logo" src="photos/yasunari_logo.jpg" alt="株式会社安成工務店">
         <div class="testi-company">株式会社安成工務店</div>
       </div>
-      <div class="testi-card">
+      <div class="testi-card pt-voice">
+        <span class="testi-badge">PLATINUM 2027</span>
         <p class="testi-body">安岡で魚を扱う者として、地域のお祭りを支えることは自然なことでした。イベントを通じて山西水産の名前を地域の方に覚えていただき、来場者の方々とのつながりが生まれています。</p>
         <img class="testi-logo" src="photos/yamanishi_logo.jpg" alt="山西水産株式会社" style="height:64px;max-width:none">
         <div class="testi-company">山西水産株式会社</div>
@@ -1011,6 +1017,7 @@ footer .related-sites__arrow{width:18px;height:18px;flex:0 0 18px;color:var(--re
         </a>
         <div class="pay-divider">または</div>
         <a href="#contact" class="btn-bank">銀行振込で申し込む</a>
+        <div class="pc-full-msg">2027年のプラチナ枠は満枠となりました。<br>ゴールドスポンサーでのご協賛をぜひご検討ください。</div>
       </div>
       <div class="pc gd">
         <div class="pc-badge">GOLD SPONSOR</div>
@@ -1730,11 +1737,15 @@ function renderSlots(id, max, used) {
     requestAnimationFrame(function() { gauge.style.width = pct + '%'; });
     gauge.classList.toggle('hot', pct >= 70);
     var txtEl = document.getElementById(gaugeId + '-txt');
-    if (txtEl) txtEl.textContent = Math.max(max - used, 0) + '/' + max + '枠 空きあり';
+    if (txtEl) txtEl.textContent = used >= max ? '満枠となりました（ありがとうございます）' : Math.max(max - used, 0) + '/' + max + '枠 空きあり';
+    var card = el && el.closest('.pc');
+    if (card) card.classList.toggle('full', used >= max);
   }
 }
-// GAS未設定時のデフォルト（空き）
-renderSlots('pt-slots', 3, 0);
+// プラチナは2027年 3社(ベストライフ・安成工務店・山西水産)で満枠確定。台帳の件数がこれより少なくても満枠表示にする
+var PT_CONFIRMED = 3;
+// GAS未設定時のデフォルト
+renderSlots('pt-slots', 3, PT_CONFIRMED);
 renderSlots('gd-slots', 10, 0);
 
 /* ===== PLAN CARD マグネットホバー ===== */
@@ -1837,7 +1848,7 @@ try{new QRCode(document.getElementById('qr-wrap'),{text:surl,width:110,height:11
 function ksCallback(d) {
   // 残枠を実データで更新
   if (d.slots) {
-    renderSlots('pt-slots', d.slots.pt.total, d.slots.pt.used);
+    renderSlots('pt-slots', d.slots.pt.total, Math.max(d.slots.pt.used, PT_CONFIRMED));
     renderSlots('gd-slots', d.slots.gd.total, d.slots.gd.used);
   }
   // 協賛企業一覧
