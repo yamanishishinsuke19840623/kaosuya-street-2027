@@ -422,6 +422,29 @@ section{padding:90px 24px;position:relative}
 .testi-company{margin-top:16px;font-size:12px;font-weight:700;color:#1B5E20;display:flex;align-items:center;gap:8px}
 .testi-company::before{content:'';width:24px;height:2px;background:var(--org-l);display:inline-block;flex-shrink:0}
 .testi-logo{height:36px;width:auto;max-width:72%;object-fit:contain;display:block;margin-top:16px}
+.testi-card.pt-voice{border:2px solid var(--gold)}
+.testi-badge{position:absolute;top:14px;right:16px;font-size:10px;letter-spacing:2px;font-weight:700;color:#7A5B00;background:linear-gradient(135deg,#FFE082,#FFD54F);padding:3px 10px;border-radius:999px}
+
+/* ===== SPECIAL GUEST（協賛企業キャラクター） ===== */
+#guest{padding:90px 24px;background:radial-gradient(circle at 20% 20%,#FFF8E1 0,rgba(255,248,225,0) 45%),linear-gradient(180deg,#F7FFF2,#E8F5E9)}
+#guest .s-label-text{color:var(--org)}
+.guest-wrap{display:grid;grid-template-columns:minmax(220px,380px) 1fr;gap:44px;align-items:center}
+.guest-img{position:relative;text-align:center}
+.guest-img::before{content:'';position:absolute;inset:8% 6%;border-radius:50%;background:radial-gradient(circle,#C8E6C9 0,rgba(200,230,201,0) 70%);z-index:0}
+.guest-img img{position:relative;z-index:1;width:100%;max-width:360px;height:auto;animation:guestBob 3.6s ease-in-out infinite}
+@keyframes guestBob{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-10px) rotate(1deg)}}
+@media(prefers-reduced-motion:reduce){.guest-img img{animation:none}}
+.guest-name{font-size:clamp(26px,5vw,40px);font-weight:900;color:#1B5E20;line-height:1.2;margin-bottom:6px}
+.guest-name small{display:block;font-size:13px;font-weight:700;color:var(--org);letter-spacing:2px;margin-bottom:6px}
+.guest-lead{font-size:14.5px;color:#3A5C3E;line-height:2;margin:14px 0 20px}
+.guest-prof{list-style:none;padding:0;margin:0 0 22px;display:grid;gap:10px}
+.guest-prof li{display:flex;gap:12px;align-items:baseline;background:#fff;border-radius:12px;padding:12px 16px;box-shadow:0 2px 12px rgba(46,125,50,.08);font-size:14px;color:#1A3C1C}
+.guest-prof b{flex-shrink:0;width:6.5em;font-size:12px;color:var(--org);letter-spacing:1px}
+.guest-date{display:inline-flex;align-items:center;gap:8px;background:#1B5E20;color:#fff;font-weight:700;font-size:14px;padding:10px 18px;border-radius:999px}
+.guest-date svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:1.8}
+.guest-by{display:flex;align-items:center;gap:12px;margin-top:22px;font-size:12px;color:var(--sub)}
+.guest-by img{height:34px;width:auto;max-width:180px;object-fit:contain}
+@media(max-width:760px){.guest-wrap{grid-template-columns:1fr;gap:24px}.guest-img img{max-width:260px}}
 
 /* ===== SPONSOR LIST (GAS動的表示) ===== */
 #sp-list{background:linear-gradient(135deg,#E8F5E9,#F7FFF2);padding:70px 24px}
@@ -915,6 +938,12 @@ footer .related-sites__arrow{width:18px;height:18px;flex:0 0 18px;color:var(--re
     <div class="s-label fade-in"><div class="s-label-line"></div><span class="s-label-text" style="color:var(--org)">Sponsors' Voice</span></div>
     <h2 class="s-title fade-in">協賛いただいた企業の声</h2>
     <div class="testi-grid fade-in">
+      <div class="testi-card pt-voice">
+        <span class="testi-badge">PLATINUM 2027</span>
+        <p class="testi-body">綾羅木で介護事業を営む私たちにとって、安岡・綾羅木のみなさんは日頃からお世話になっているご近所さんです。当日はマスコットのベッティーも会場に伺います。世代をこえて笑顔が集まる2日間を、一緒に盛り上げます。</p>
+        <img class="testi-logo" src="photos/bestlife_logo.png" alt="有限会社ベストライフ">
+        <div class="testi-company">介護事業の有限会社ベストライフ</div>
+      </div>
       <div class="testi-card">
         <p class="testi-body">「地域住民と共に考え、育てるまちづくり」は、当社の理念のひとつでもあります。子どもたちが生き生きとステージに立ち、未来への希望を感じられることを、毎年楽しみにしています。</p>
         <img class="testi-logo" src="photos/yasunari_logo.jpg" alt="株式会社安成工務店">
@@ -928,6 +957,29 @@ footer .related-sites__arrow{width:18px;height:18px;flex:0 0 18px;color:var(--re
       <div class="testi-card">
         <p class="testi-body">会場バナーや公式HPへの掲載だけでなく、Instagramでも丁寧にご紹介いただきました。地域密着PRとして手応えを感じており、継続協賛を予定しています。</p>
         <div class="testi-company">過去協賛企業（ゴールドスポンサー）</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== SPECIAL GUEST（ベストライフ様 マスコット） ===== -->
+<section id="guest">
+  <div class="ctr">
+    <div class="s-label fade-in"><div class="s-label-line"></div><span class="s-label-text">Special Guest</span></div>
+    <h2 class="s-title fade-in">ベッティーが会場にやってくる！</h2>
+    <div class="guest-wrap fade-in">
+      <div class="guest-img"><img src="photos/betty.png" alt="ベストライフのマスコットキャラクター ベッティー" loading="lazy"></div>
+      <div>
+        <div class="guest-name"><small>有限会社ベストライフ マスコット</small>ベッティー</div>
+        <p class="guest-lead">プラチナスポンサーの有限会社ベストライフから、マスコットキャラクターのベッティーが会場に遊びに来ます。見かけたら気軽に声をかけて、一緒に写真を撮ってくださいね。</p>
+        <ul class="guest-prof">
+          <li><b>生まれ</b>川棚温泉</li>
+          <li><b>大好物</b>川棚まんじゅう</li>
+          <li><b>得意料理</b>瓦そば</li>
+          <li><b>ひみつ</b>おしゃべりはしないけれど、身ぶりで気持ちを伝えます</li>
+        </ul>
+        <span class="guest-date"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>2027年3月13日（土）・14日（日） 会場でグリーティング予定</span>
+        <div class="guest-by"><img src="photos/bestlife_logo.png" alt="有限会社ベストライフ" loading="lazy">介護事業の有限会社ベストライフ</div>
       </div>
     </div>
   </div>
